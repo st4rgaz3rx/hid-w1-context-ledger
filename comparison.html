@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HID-W1 · Icon Comparison — Original vs Lucide vs Fluent Emoji</title>
+<style>
+  :root {
+    --bg: #faf8f4;
+    --bg-2: #f1ede5;
+    --bg-3: #e8e2d6;
+    --ink: #1c1a17;
+    --ink-2: #4a463f;
+    --ink-3: #7a766e;
+    --line: #d4cdbf;
+    --green: #4a7a4a;
+    --green-bg: #e8f0e6;
+    --yellow: #b08800;
+    --yellow-bg: #f5edd0;
+    --red: #a94545;
+    --red-bg: #f3e0dd;
+    --blue: #2b5e7e;
+    --blue-bg: #e0ebf2;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Segoe UI", sans-serif;
+    font-size: 14px;
+    line-height: 1.55;
+    padding: 40px 24px 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1400px; margin: 0 auto; }
+  header { margin-bottom: 32px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+  header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+  header p { color: var(--ink-3); margin-top: 6px; font-size: 13px; }
+  header a { color: var(--ink-2); }
+
+  h2.section-title {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--ink-3); margin: 36px 0 14px; font-weight: 700;
+  }
+
+  /* 3-col grid */
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+  @media (max-width: 1100px) { .grid-3 { grid-template-columns: 1fr; } }
+
+  .col {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px 16px 22px;
+  }
+  .col h3 {
+    font-size: 14px; font-weight: 700; margin-bottom: 4px;
+    display: flex; align-items: baseline; justify-content: space-between;
+  }
+  .col h3 .badge {
+    font-size: 10px; padding: 2px 8px; border-radius: 10px;
+    background: var(--bg); color: var(--ink-3); border: 1px solid var(--line);
+    font-family: ui-monospace, "SF Mono", monospace; font-weight: 400;
+  }
+  .col p.desc { color: var(--ink-3); font-size: 12px; margin-bottom: 14px; }
+
+  /* card mimic of prototype */
+  .card {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+  .card .row1 {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; gap: 10px;
+  }
+  .card .label { font-weight: 600; font-size: 13px; color: var(--ink); display: inline-flex; align-items: center; gap: 6px; }
+  .card .badge-state {
+    font-size: 10px; padding: 3px 8px; border-radius: 10px;
+    font-family: ui-monospace, "SF Mono", monospace;
+    display: inline-flex; align-items: center; gap: 5px;
+    border: 1px solid;
+  }
+  .card .row2 {
+    display: flex; align-items: center; gap: 8px; font-size: 11px;
+    color: var(--ink-3); font-family: ui-monospace, "SF Mono", monospace;
+  }
+  .card[data-state="active"]      .badge-state { background: var(--green-bg);  color: var(--green);  border-color: var(--green); }
+  .card[data-state="summarized"]  .badge-state { background: var(--yellow-bg); color: var(--yellow); border-color: var(--yellow); }
+  .card[data-state="dropped"]     .badge-state { background: var(--red-bg);    color: var(--red);    border-color: var(--red); }
+  .card[data-state="reattached"]  .badge-state { background: var(--green-bg);  color: var(--green);  border-color: var(--green); font-weight: 600; }
+
+  /* dot legacy (CSS dot) */
+  .css-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+  }
+  .card[data-state="active"]      .css-dot { background: var(--green); }
+  .card[data-state="summarized"]  .css-dot { background: var(--yellow); }
+  .card[data-state="dropped"]     .css-dot { background: var(--red); }
+  .card[data-state="reattached"]  .css-dot { background: var(--green); box-shadow: 0 0 0 2px rgba(74,122,74,0.2); }
+
+  /* Lucide icon sizing */
+  .lucide-icon { width: 14px; height: 14px; vertical-align: -2px; }
+  .lucide-icon-sm { width: 10px; height: 10px; }
+
+  /* Fluent emoji sizing */
+  .fluent-icon { width: 18px; height: 18px; vertical-align: -4px; }
+  .fluent-icon-sm { width: 14px; height: 14px; vertical-align: -3px; }
+  .fluent-icon-lg { width: 22px; height: 22px; vertical-align: -5px; }
+
+  /* showcase swatch */
+  .swatch-row {
+    display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px;
+    padding: 14px; background: var(--bg); border-radius: 6px; border: 1px solid var(--line);
+  }
+  .swatch-row .item {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 8px 10px; min-width: 64px;
+  }
+  .swatch-row .item .icon-large { font-size: 26px; line-height: 1; }
+  .swatch-row .item .icon-large img { width: 32px; height: 32px; }
+  .swatch-row .item .icon-large svg { width: 28px; height: 28px; stroke-width: 2; }
+  .swatch-row .item .label { font-size: 10px; color: var(--ink-3); font-family: ui-monospace, "SF Mono", monospace; }
+
+  .footer-note {
+    margin-top: 60px; padding: 18px 20px; background: var(--bg-2); border-radius: 8px;
+    border: 1px solid var(--line); color: var(--ink-2); font-size: 13px; line-height: 1.7;
+  }
+  .footer-note strong { color: var(--ink); }
+  .footer-note ul { margin: 8px 0 0 18px; }
+
+  .verdict {
+    display: grid; grid-template-columns: 200px 1fr; gap: 16px; margin-top: 20px;
+  }
+  .verdict .v-row { display: contents; }
+  .verdict .v-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-3);
+    padding-top: 4px; font-weight: 600;
+  }
+  .verdict .v-content { padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<header>
+  <h1>HID-W1 · 아이콘 비교 — Original / Lucide / Fluent Emoji</h1>
+  <p>Context Ledger 카드의 4 상태(<strong>active · summarized · dropped · re-attached</strong>) 를 세 가지 아이콘 시스템으로 렌더 비교. <a href="./">← 본 프로토타입으로 돌아가기</a></p>
+</header>
+
+<!-- Standalone swatch row -->
+<h2 class="section-title">Swatch — 4 상태를 standalone 으로</h2>
+
+<div class="grid-3">
+
+  <!-- Column 1: Original Emoji -->
+  <div class="col">
+    <h3>① Original (vendor emoji) <span class="badge">현재</span></h3>
+    <p class="desc">OS / 브라우저별 렌더가 다름 (Apple · Google · MS 가 모두 다름)</p>
+    <div class="swatch-row">
+      <div class="item"><span class="icon-large">🟢</span><span class="label">active</span></div>
+      <div class="item"><span class="icon-large">🟡</span><span class="label">summarized</span></div>
+      <div class="item"><span class="icon-large">🔴</span><span class="label">dropped</span></div>
+      <div class="item"><span class="icon-large">🟢↻</span><span class="label">re-attached</span></div>
+    </div>
+  </div>
+
+  <!-- Column 2: Lucide -->
+  <div class="col">
+    <h3>② Lucide <span class="badge">line SVG</span></h3>
+    <p class="desc">shadcn/ui · Vercel · Linear 같은 모던 SaaS의 표준</p>
+    <div class="swatch-row">
+      <div class="item"><span class="icon-large"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#4a7a4a" stroke="#2b5e2b" stroke-width="1.5"><circle cx="12" cy="12" r="10"/></svg></span><span class="label">active</span></div>
+      <div class="item"><span class="icon-large"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#b08800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12c.552 0 1.005-.449.95-.998a10 10 0 0 0-8.953-8.951c-.55-.055-.997.398-.997.95v8a1 1 0 0 0 1 1z"/><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/></svg></span><span class="label">summarized</span></div>
+      <div class="item"><span class="icon-large"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#a94545" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 2 20 20"/><path d="M8.35 2.69A10 10 0 0 1 21.3 15.65"/><path d="M19.08 19.08A10 10 0 1 1 4.92 4.92"/></svg></span><span class="label">dropped</span></div>
+      <div class="item"><span class="icon-large"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#4a7a4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg></span><span class="label">re-attached</span></div>
+    </div>
+  </div>
+
+  <!-- Column 3: Fluent Emoji -->
+  <div class="col">
+    <h3>③ MS Fluent Emoji <span class="badge">3D color</span></h3>
+    <p class="desc">Microsoft, gradient + 3D 깊이감, 가장 modern·premium 느낌</p>
+    <div class="swatch-row">
+      <div class="item"><span class="icon-large"><img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Green%20circle/3D/green_circle_3d.png" alt="active"></span><span class="label">active</span></div>
+      <div class="item"><span class="icon-large"><img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Yellow%20circle/3D/yellow_circle_3d.png" alt="summarized"></span><span class="label">summarized</span></div>
+      <div class="item"><span class="icon-large"><img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Red%20circle/3D/red_circle_3d.png" alt="dropped"></span><span class="label">dropped</span></div>
+      <div class="item"><span class="icon-large"><img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Counterclockwise%20arrows%20button/3D/counterclockwise_arrows_button_3d.png" alt="re-attached"></span><span class="label">re-attached</span></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- In-context: actual card mimics -->
+<h2 class="section-title">In context — Ledger 카드 4종</h2>
+
+<div class="grid-3">
+
+  <!-- Column 1: Original -->
+  <div class="col">
+    <h3>① Original</h3>
+    <div class="card" data-state="summarized">
+      <div class="row1">
+        <div class="label"><span>📄</span><span>spec v1</span></div>
+        <span class="badge-state">🟡 summarized</span>
+      </div>
+      <div class="row2"><span class="css-dot"></span><span>1247 → 340 tok</span></div>
+    </div>
+    <div class="card" data-state="summarized">
+      <div class="row1">
+        <div class="label"><span>💬</span><span>turn 8 의사결정</span></div>
+        <span class="badge-state">🟡 summarized</span>
+      </div>
+      <div class="row2"><span class="css-dot"></span><span>420 → 110 tok</span></div>
+    </div>
+    <div class="card" data-state="active">
+      <div class="row1">
+        <div class="label"><span>🐛</span><span>turn 22 버그</span></div>
+        <span class="badge-state">🟢 active</span>
+      </div>
+      <div class="row2"><span class="css-dot"></span><span>180 tok</span></div>
+    </div>
+    <div class="card" data-state="dropped">
+      <div class="row1">
+        <div class="label"><span>💬</span><span>turn 14 곁다리</span></div>
+        <span class="badge-state">🔴 dropped</span>
+      </div>
+      <div class="row2"><span class="css-dot"></span><span>95 → 0 tok</span></div>
+    </div>
+  </div>
+
+  <!-- Column 2: Lucide -->
+  <div class="col">
+    <h3>② Lucide</h3>
+    <div class="card" data-state="summarized">
+      <div class="row1">
+        <div class="label">
+          <svg class="lucide-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span>spec v1</span>
+        </div>
+        <span class="badge-state">
+          <svg class="lucide-icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12c.552 0 1.005-.449.95-.998a10 10 0 0 0-8.953-8.951c-.55-.055-.997.398-.997.95v8a1 1 0 0 0 1 1z"/><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/></svg>
+          summarized
+        </span>
+      </div>
+      <div class="row2"><span class="css-dot"></span><span>1247 → 340 tok</span></div>
+    </div>
+    <div class="card" data-state="summarized">
+      <div class="row1">
+        <div class="label">
+          <svg class="lucide-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span>turn 8 의사결정</span>
+        </div>
+        <span class="badge-state">
+          <svg class="lucide-icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12c.552 0 1.005-.449.95-.998a10 10 0 0 0-8.953-8.951c-.55-.055-.997.398-.997.95v8a1 1 0 0 0 1 1z"/><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/></svg>
+          summarized
+        </span>
+      </div>
+      <div class="row2"><span class="css-dot"></span><span>420 → 110 tok</span></div>
+    </div>
+    <div class="card" data-state="active">
+      <div class="row1">
+        <div class="label">
+          <svg class="lucide-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20a8 8 0 1 0-8-8"/><path d="M12 4V2"/><path d="M12 22v-2"/><circle cx="12" cy="12" r="2"/><path d="M9 12h6"/></svg>
+          <span>turn 22 버그</span>
+        </div>
+        <span class="badge-state">
+          <svg class="lucide-icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1"><circle cx="12" cy="12" r="10"/></svg>
+          active
+        </span>
+      </div>
+      <div class="row2"><span class="css-dot"></span><span>180 tok</span></div>
+    </div>
+    <div class="card" data-state="dropped">
+      <div class="row1">
+        <div class="label">
+          <svg class="lucide-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span>turn 14 곁다리</span>
+        </div>
+        <span class="badge-state">
+          <svg class="lucide-icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 2 20 20"/><path d="M8.35 2.69A10 10 0 0 1 21.3 15.65"/><path d="M19.08 19.08A10 10 0 1 1 4.92 4.92"/></svg>
+          dropped
+        </span>
+      </div>
+      <div class="row2"><span class="css-dot"></span><span>95 → 0 tok</span></div>
+    </div>
+  </div>
+
+  <!-- Column 3: Fluent Emoji -->
+  <div class="col">
+    <h3>③ Fluent Emoji</h3>
+    <div class="card" data-state="summarized">
+      <div class="row1">
+        <div class="label">
+          <img class="fluent-icon-sm" src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Page%20facing%20up/3D/page_facing_up_3d.png" alt="">
+          <span>spec v1</span>
+        </div>
+        <span class="badge-state">
+          <img class="fluent-icon-sm" src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Yellow%20circle/3D/yellow_circle_3d.png" alt="">
+          summarized
+        </span>
+      </div>
+      <div class="row2"><span class="css-dot"></span><span>1247 → 340 tok</span></div>
+    </div>
+    <div class="card" data-state="summarized">
+      <div class="row1">
+        <div class="label">
+          <img class="fluent-icon-sm" src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Speech%20balloon/3D/speech_balloon_3d.png" alt="">
+          <span>turn 8 의사결정</span>
+        </div>
+        <span class="badge-state">
+          <img class="fluent-icon-sm" src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Yellow%20circle/3D/yellow_circle_3d.png" alt="">
+          summarized
+        </span>
+      </div>
+      <div class="row2"><span class="css-dot"></span><span>420 → 110 tok</span></div>
+    </div>
+    <div class="card" data-state="active">
+      <div class="row1">
+        <div class="label">
+          <img class="fluent-icon-sm" src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Lady%20beetle/3D/lady_beetle_3d.png" alt="">
+          <span>turn 22 버그</span>
+        </div>
+        <span class="badge-state">
+          <img class="fluent-icon-sm" src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Green%20circle/3D/green_circle_3d.png" alt="">
+          active
+        </span>
+      </div>
+      <div class="row2"><span class="css-dot"></span><span>180 tok</span></div>
+    </div>
+    <div class="card" data-state="dropped">
+      <div class="row1">
+        <div class="label">
+          <img class="fluent-icon-sm" src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Speech%20balloon/3D/speech_balloon_3d.png" alt="">
+          <span>turn 14 곁다리</span>
+        </div>
+        <span class="badge-state">
+          <img class="fluent-icon-sm" src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Red%20circle/3D/red_circle_3d.png" alt="">
+          dropped
+        </span>
+      </div>
+      <div class="row2"><span class="css-dot"></span><span>95 → 0 tok</span></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Re-attached state, side by side -->
+<h2 class="section-title">Re-attached 상태 — 강조 효과 비교</h2>
+
+<div class="grid-3">
+  <div class="col">
+    <h3>① Original</h3>
+    <div class="card" data-state="reattached">
+      <div class="row1">
+        <div class="label"><span>📄</span><span>spec v1</span></div>
+        <span class="badge-state">🟢↻ re-attached</span>
+      </div>
+      <div class="row2"><span class="css-dot"></span><span>1247 → 1247 tok</span></div>
+    </div>
+  </div>
+  <div class="col">
+    <h3>② Lucide</h3>
+    <div class="card" data-state="reattached">
+      <div class="row1">
+        <div class="label">
+          <svg class="lucide-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span>spec v1</span>
+        </div>
+        <span class="badge-state">
+          <svg class="lucide-icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
+          re-attached
+        </span>
+      </div>
+      <div class="row2"><span class="css-dot"></span><span>1247 → 1247 tok</span></div>
+    </div>
+  </div>
+  <div class="col">
+    <h3>③ Fluent Emoji</h3>
+    <div class="card" data-state="reattached">
+      <div class="row1">
+        <div class="label">
+          <img class="fluent-icon-sm" src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Page%20facing%20up/3D/page_facing_up_3d.png" alt="">
+          <span>spec v1</span>
+        </div>
+        <span class="badge-state">
+          <img class="fluent-icon-sm" src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Counterclockwise%20arrows%20button/3D/counterclockwise_arrows_button_3d.png" alt="">
+          re-attached
+        </span>
+      </div>
+      <div class="row2"><span class="css-dot"></span><span>1247 → 1247 tok</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Verdict -->
+<div class="footer-note">
+  <strong>비교 정리</strong>
+  <div class="verdict">
+    <div class="v-row">
+      <div class="v-label">① Original</div>
+      <div class="v-content">
+        <strong>장점</strong>: 0 byte (이미 있음), 모든 OS 지원.<br>
+        <strong>단점</strong>: vendor마다 렌더 다름 (Apple 🟢 vs Google 🟢 vs Win 🟢 → 색·크기 다 다름). 시스템 폰트 사이즈 강제.
+      </div>
+    </div>
+    <div class="v-row">
+      <div class="v-label">② Lucide</div>
+      <div class="v-content">
+        <strong>장점</strong>: 모든 환경 동일 렌더, CSS color 상속, 24px stroke 일관성, 인라인 SVG (외부 의존 0). shadcn·Vercel·Linear 표준.<br>
+        <strong>단점</strong>: line icon이라 색만으로는 emoji보다 약간 덜 눈에 띔 (다만 배지 배경색이 강조해줌).
+      </div>
+    </div>
+    <div class="v-row">
+      <div class="v-label">③ Fluent Emoji</div>
+      <div class="v-content">
+        <strong>장점</strong>: 가장 premium·modern 느낌, 3D 그라데이션, "이게 디자이너가 만든 디자인이다" 느낌 강함.<br>
+        <strong>단점</strong>: jsdelivr CDN 의존 (오프라인 X), 인쇄 시 PNG 깨짐 가능, 제출 환경에 따라 차단 가능.
+      </div>
+    </div>
+  </div>
+  <p style="margin-top: 18px;">
+    <strong>본 과제 컨텍스트 추천</strong>: ② <strong>Lucide</strong> — 단일 HTML 자체완결성 + 디자인 일관성. ③ Fluent는 시각 쇼크는 크지만 외부 CDN 의존이라 평가자 환경에서 가끔 막힘. ①은 디바이스마다 달라보여 "디자인이 안 정렬됨"으로 보일 위험.
+    <br><br>
+    어느 안으로 적용할까요? 결정하시면 본 프로토타입에 반영 + Excalidraw 다이어그램의 텍스트도 동일 어휘로 통일하겠습니다.
+  </p>
+</div>
+
+</div>
+
+</body>
+</html>
