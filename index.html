@@ -221,13 +221,10 @@
   }
   .send-btn:hover { background: var(--accent); }
   .preview-chips {
-    position: absolute; bottom: calc(100% + 8px); left: 0; right: 0;
-    display: none; gap: 6px; flex-wrap: wrap;
+    display: flex; gap: 6px; flex-wrap: wrap;
     background: var(--bg-2); border: 1px solid var(--line); border-radius: 6px;
-    padding: 8px 10px;
-    box-shadow: var(--shadow);
+    padding: 8px 10px; margin-bottom: 8px;
   }
-  .preview-chips.show { display: flex; animation: fadeIn 160ms ease; }
   .preview-chips .chip-label {
     font-size: 10px; color: var(--ink-3); text-transform: uppercase;
     letter-spacing: 0.05em; flex-basis: 100%; margin-bottom: 2px;
@@ -361,7 +358,7 @@
       <div class="input-inner">
         <div class="input-attached" id="input-attached"></div>
         <div class="preview-chips" id="preview-chips">
-          <span class="chip-label">이번 답변에 사용될 컨텍스트 (hover 시 표시)</span>
+          <span class="chip-label">이번 답변에 사용될 컨텍스트</span>
         </div>
         <div class="input-row" id="input-row">
           <textarea id="input" rows="2" placeholder="메시지 입력 …"></textarea>
@@ -408,7 +405,7 @@
   <h4>테스트 시나리오</h4>
   <ol>
     <li>좌측 ledger의 노랑 카드 색 확인</li>
-    <li>"보내기" 버튼 위에 hover → 칩 미리보기</li>
+    <li>입력창 위 "이번 답변에 사용될 컨텍스트" 칩 묶음 확인</li>
     <li>노랑 spec v1 카드 클릭 → diff 모달</li>
     <li>노랑 카드를 입력창에 드래그 → 재첨부</li>
     <li>보내기 → 답변에 인용됨</li>
@@ -742,15 +739,11 @@ inputRow.addEventListener('drop', (e) => {
 });
 
 /* =========================================================
-   PREVIEW CHIPS HOVER
+   SEND BUTTON SETUP
+   (Preview chips are now always visible above the input —
+    no hover behavior needed.)
    ========================================================= */
 const sendBtn = document.getElementById('send');
-sendBtn.addEventListener('mouseenter', () => previewChips.classList.add('show'));
-sendBtn.addEventListener('mouseleave', () => previewChips.classList.remove('show'));
-sendBtn.addEventListener('focus', () => previewChips.classList.add('show'));
-sendBtn.addEventListener('blur', () => previewChips.classList.remove('show'));
-
-/* Inject icon into send button */
 sendBtn.insertAdjacentHTML('afterbegin', iconHTML('send','icon-sm'));
 
 /* =========================================================
