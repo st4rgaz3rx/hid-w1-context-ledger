@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HID-W1 · Context Ledger 프로토타입</title>
+<style>
+  :root {
+    --bg: #faf8f4;
+    --bg-2: #f1ede5;
+    --bg-3: #e8e2d6;
+    --ink: #1c1a17;
+    --ink-2: #4a463f;
+    --ink-3: #7a766e;
+    --line: #d4cdbf;
+    --accent: #2d5044;
+    --green: #4a7a4a;
+    --green-bg: #e8f0e6;
+    --yellow: #b08800;
+    --yellow-bg: #f5edd0;
+    --red: #a94545;
+    --red-bg: #f3e0dd;
+    --shadow: 0 1px 0 rgba(28,26,23,0.04), 0 4px 12px rgba(28,26,23,0.04);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Segoe UI", sans-serif;
+    font-size: 14px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  body { display: flex; flex-direction: column; overflow: hidden; }
+
+  /* Header */
+  header {
+    flex: 0 0 auto;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg);
+    padding: 12px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  header h1 {
+    font-size: 13px; font-weight: 600; letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  header h1 .muted { color: var(--ink-3); font-weight: 400; margin-left: 8px; }
+  header .tag {
+    font-size: 11px; color: var(--ink-3);
+    padding: 3px 8px; border: 1px solid var(--line); border-radius: 4px;
+    font-family: ui-monospace, "SF Mono", monospace;
+  }
+  header .actions { display: flex; gap: 8px; }
+  header button {
+    font-size: 12px; padding: 5px 10px; border: 1px solid var(--line);
+    background: var(--bg); color: var(--ink-2); border-radius: 4px;
+    cursor: pointer; font-family: inherit;
+  }
+  header button:hover { background: var(--bg-2); }
+
+  /* Layout */
+  main { flex: 1 1 auto; display: grid; grid-template-columns: 320px 1fr; min-height: 0; }
+
+  /* Ledger */
+  aside.ledger {
+    border-right: 1px solid var(--line);
+    background: var(--bg-2);
+    overflow-y: auto;
+    padding: 16px 14px;
+  }
+  .ledger-title {
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--ink-3); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .ledger-title .count {
+    font-family: ui-monospace, "SF Mono", monospace;
+    color: var(--ink-3); font-weight: 400; letter-spacing: 0;
+  }
+  .ledger-hint {
+    font-size: 11px; color: var(--ink-3); padding: 8px 10px; background: var(--bg-3);
+    border-radius: 4px; margin-bottom: 14px; line-height: 1.5;
+  }
+  .card {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 6px;
+    padding: 10px 12px; margin-bottom: 8px; cursor: pointer;
+    transition: background 220ms ease, border-color 220ms ease, transform 120ms ease;
+    user-select: none;
+  }
+  .card:active { cursor: grabbing; }
+  .card:hover { border-color: var(--ink-3); }
+  .card.dragging { opacity: 0.4; }
+  .card .row1 {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;
+  }
+  .card .label { font-weight: 600; font-size: 13px; color: var(--ink); }
+  .card .badge {
+    font-size: 10px; padding: 2px 6px; border-radius: 10px;
+    font-family: ui-monospace, "SF Mono", monospace;
+  }
+  .card .row2 {
+    display: flex; align-items: center; gap: 8px; font-size: 11px;
+    color: var(--ink-3); font-family: ui-monospace, "SF Mono", monospace;
+  }
+  .card .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+  }
+  .card[data-state="active"]      .dot { background: var(--green); }
+  .card[data-state="active"]      .badge { background: var(--green-bg); color: var(--green); }
+  .card[data-state="summarized"]  .dot { background: var(--yellow); }
+  .card[data-state="summarized"]  .badge { background: var(--yellow-bg); color: var(--yellow); }
+  .card[data-state="dropped"]     .dot { background: var(--red); }
+  .card[data-state="dropped"]     .badge { background: var(--red-bg); color: var(--red); }
+  .card[data-state="reattached"]  .dot { background: var(--green); box-shadow: 0 0 0 2px rgba(74,122,74,0.2); }
+  .card[data-state="reattached"]  .badge { background: var(--green-bg); color: var(--green); }
+
+  /* Chat */
+  section.chat {
+    display: flex; flex-direction: column; min-height: 0;
+    background: var(--bg);
+  }
+  .messages {
+    flex: 1 1 auto; overflow-y: auto; padding: 20px 28px 12px 28px;
+  }
+  .messages-inner { max-width: 720px; margin: 0 auto; }
+  .turn {
+    display: grid; grid-template-columns: 24px 1fr; gap: 12px;
+    padding: 10px 0; position: relative;
+  }
+  .turn .gutter {
+    color: var(--ink-3); font-size: 10px; font-family: ui-monospace, "SF Mono", monospace;
+    padding-top: 4px; text-align: right; user-select: none;
+  }
+  .turn .gutter .drop-dot {
+    width: 6px; height: 6px; background: var(--red); border-radius: 50%;
+    display: inline-block; margin-left: 4px; cursor: help;
+  }
+  .turn .body { font-size: 14px; line-height: 1.6; color: var(--ink); }
+  .turn .who {
+    font-size: 11px; font-weight: 600; color: var(--ink-3);
+    text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;
+  }
+  .turn[data-role="assistant"] .who { color: var(--accent); }
+  .turn .body code, .turn .body pre {
+    background: var(--bg-2); border-radius: 3px; padding: 1px 5px; font-size: 12px;
+    font-family: ui-monospace, "SF Mono", monospace;
+  }
+  .turn .body pre { padding: 10px; margin: 6px 0; white-space: pre-wrap; overflow-x: auto; line-height: 1.5; }
+  .turn .body .citation {
+    display: inline-block; font-size: 10px; color: var(--ink-3);
+    background: var(--bg-2); padding: 2px 7px; border-radius: 10px;
+    margin-top: 6px; font-family: ui-monospace, "SF Mono", monospace;
+  }
+  .turn[data-dropped="true"] .body { opacity: 0.55; }
+  .turn[data-dropped="true"] .body::after {
+    content: ''; display: block; height: 1px; background: var(--line);
+    margin-top: 6px;
+  }
+  .turn-divider {
+    border-top: 1px dashed var(--line); padding-top: 6px; margin-top: 12px;
+    color: var(--ink-3); font-size: 11px; font-family: ui-monospace, "SF Mono", monospace;
+  }
+
+  /* Input */
+  .input-wrap {
+    flex: 0 0 auto; padding: 14px 28px 18px 28px; border-top: 1px solid var(--line);
+    background: var(--bg); position: relative;
+  }
+  .input-inner { max-width: 720px; margin: 0 auto; position: relative; }
+  .input-attached {
+    background: var(--green-bg); border: 1px solid var(--green); color: var(--green);
+    padding: 6px 10px; border-radius: 4px; font-size: 11px; margin-bottom: 8px;
+    display: none; align-items: center; gap: 6px;
+    font-family: ui-monospace, "SF Mono", monospace;
+  }
+  .input-attached.show { display: flex; animation: fadeIn 200ms ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px);} to { opacity: 1; transform: none;} }
+  .input-attached strong { font-weight: 600; }
+  .input-row {
+    display: flex; align-items: stretch; gap: 8px;
+    border: 1px solid var(--line); border-radius: 8px; background: var(--bg);
+    padding: 0; transition: border-color 200ms ease, box-shadow 200ms ease;
+  }
+  .input-row.drop-target {
+    border-color: var(--green); box-shadow: 0 0 0 3px var(--green-bg);
+  }
+  .input-row textarea {
+    flex: 1 1 auto; border: 0; padding: 12px 14px; font-size: 14px;
+    font-family: inherit; resize: none; background: transparent; color: var(--ink);
+    line-height: 1.5; outline: none; min-height: 56px;
+  }
+  .send-btn {
+    flex: 0 0 auto; align-self: stretch;
+    background: var(--ink); color: var(--bg);
+    border: 0; padding: 0 18px; font-size: 13px; font-weight: 600;
+    border-radius: 0 8px 8px 0; cursor: pointer; font-family: inherit;
+    transition: background 160ms ease;
+  }
+  .send-btn:hover { background: var(--accent); }
+  .preview-chips {
+    position: absolute; bottom: calc(100% + 8px); left: 0; right: 0;
+    display: none; gap: 6px; flex-wrap: wrap;
+    background: var(--bg-2); border: 1px solid var(--line); border-radius: 6px;
+    padding: 8px 10px;
+    box-shadow: var(--shadow);
+  }
+  .preview-chips.show { display: flex; animation: fadeIn 160ms ease; }
+  .preview-chips .chip-label {
+    font-size: 10px; color: var(--ink-3); text-transform: uppercase;
+    letter-spacing: 0.05em; flex-basis: 100%; margin-bottom: 2px;
+    font-weight: 600;
+  }
+  .chip {
+    font-size: 11px; padding: 3px 8px; border-radius: 12px;
+    font-family: ui-monospace, "SF Mono", monospace;
+    display: inline-flex; align-items: center; gap: 5px;
+    border: 1px solid;
+  }
+  .chip[data-state="active"]     { color: var(--green);  background: var(--green-bg);  border-color: var(--green); }
+  .chip[data-state="summarized"] { color: var(--yellow); background: var(--yellow-bg); border-color: var(--yellow); }
+  .chip[data-state="reattached"] { color: var(--green);  background: var(--green-bg);  border-color: var(--green); }
+  .chip .chip-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+  /* Modal */
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(28,26,23,0.4);
+    display: none; align-items: center; justify-content: center; z-index: 100;
+  }
+  .modal-backdrop.show { display: flex; animation: fadeIn 180ms ease; }
+  .modal {
+    background: var(--bg); border-radius: 10px;
+    width: min(900px, 92vw); max-height: 80vh; overflow: hidden;
+    display: flex; flex-direction: column;
+    box-shadow: 0 20px 60px rgba(28,26,23,0.25);
+    border: 1px solid var(--line);
+  }
+  .modal-header {
+    padding: 14px 18px; border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-header h2 { font-size: 14px; font-weight: 600; }
+  .modal-header .close {
+    background: none; border: 0; font-size: 18px; color: var(--ink-3); cursor: pointer; line-height: 1;
+  }
+  .modal-body {
+    flex: 1 1 auto; overflow: auto;
+    display: grid; grid-template-columns: 1fr 1fr;
+  }
+  .modal-pane {
+    padding: 14px 18px; overflow-y: auto; max-height: 60vh;
+  }
+  .modal-pane:first-child { border-right: 1px solid var(--line); }
+  .modal-pane h3 {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--ink-3); margin-bottom: 10px; font-weight: 600;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-pane h3 .meta {
+    font-family: ui-monospace, "SF Mono", monospace; font-weight: 400;
+  }
+  .doc-line {
+    display: block; font-size: 12px; line-height: 1.65;
+    padding: 1px 0; font-family: ui-monospace, "SF Mono", monospace;
+    color: var(--ink-2); white-space: pre-wrap;
+  }
+  .doc-line.kept { font-weight: 700; color: var(--ink); }
+  .doc-line.dropped {
+    color: var(--red); text-decoration: line-through; opacity: 0.65;
+  }
+  .modal-footer {
+    padding: 10px 18px; border-top: 1px solid var(--line);
+    font-size: 11px; color: var(--ink-3);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .modal-footer button {
+    font-size: 12px; padding: 5px 12px; border: 1px solid var(--ink); color: var(--ink);
+    background: var(--bg); border-radius: 4px; cursor: pointer; font-family: inherit;
+  }
+  .modal-footer button:hover { background: var(--ink); color: var(--bg); }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: var(--bg);
+    padding: 10px 18px; border-radius: 6px; font-size: 12px;
+    opacity: 0; transition: opacity 200ms ease;
+    pointer-events: none; z-index: 200;
+    font-family: ui-monospace, "SF Mono", monospace;
+  }
+  .toast.show { opacity: 1; }
+
+  /* Demo guide */
+  .demo-guide {
+    position: fixed; bottom: 16px; right: 16px; z-index: 50;
+    background: var(--ink); color: var(--bg);
+    padding: 12px 14px; border-radius: 6px; max-width: 280px;
+    font-size: 12px; line-height: 1.5;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  }
+  .demo-guide h4 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; opacity: 0.7; }
+  .demo-guide ol { margin: 0; padding-left: 16px; }
+  .demo-guide li { margin: 3px 0; }
+  .demo-guide .close-guide { background: none; border: 0; color: var(--bg); opacity: 0.6; cursor: pointer; font-size: 14px; position: absolute; top: 6px; right: 8px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>HID-W1 · Context Ledger <span class="muted">/ v0.1 prototype</span></h1>
+  <div class="actions">
+    <span class="tag" id="tag-turn">turn 30 / 31</span>
+    <button id="btn-reset">처음부터</button>
+  </div>
+</header>
+
+<main>
+  <aside class="ledger">
+    <div class="ledger-title">
+      <span>Context Ledger</span>
+      <span class="count" id="ledger-count">4 chunks</span>
+    </div>
+    <div class="ledger-hint">
+      카드를 클릭 → 원문↔요약 비교 모달.<br>
+      카드를 입력창에 드래그 → 다음 turn에 재첨부.
+    </div>
+    <div id="card-list"></div>
+  </aside>
+
+  <section class="chat">
+    <div class="messages" id="messages">
+      <div class="messages-inner" id="messages-inner"></div>
+    </div>
+    <div class="input-wrap">
+      <div class="input-inner">
+        <div class="input-attached" id="input-attached"></div>
+        <div class="preview-chips" id="preview-chips">
+          <span class="chip-label">이번 답변에 사용될 컨텍스트 (hover 시 표시)</span>
+        </div>
+        <div class="input-row" id="input-row">
+          <textarea id="input" rows="2" placeholder="메시지 입력 …"></textarea>
+          <button class="send-btn" id="send" type="button">보내기</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Diff modal -->
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-title">spec v1 — 원문 ↔ 요약 비교</h2>
+      <button class="close" id="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-pane">
+        <h3>원문 <span class="meta" id="meta-original"></span></h3>
+        <div id="pane-original"></div>
+      </div>
+      <div class="modal-pane">
+        <h3>모델이 들고 있는 요약본 <span class="meta" id="meta-summary"></span></h3>
+        <div id="pane-summary"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <span>굵은 줄 = 요약에 보존, <span style="color:var(--red);text-decoration:line-through;">취소선</span> = 누락</span>
+      <button id="modal-attach">이 컨텍스트 재첨부 →</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="demo-guide" id="demo-guide">
+  <button class="close-guide" id="close-guide">×</button>
+  <h4>테스트 시나리오</h4>
+  <ol>
+    <li>좌측 ledger의 🟡 카드 색 확인</li>
+    <li>"보내기" 버튼 위에 hover → 칩 미리보기</li>
+    <li>🟡 spec v1 카드 클릭 → diff 모달</li>
+    <li>🟡 카드를 입력창에 드래그 → 재첨부</li>
+    <li>보내기 → 답변에 인용됨</li>
+    <li>turn 14 좌측 🔴 점 hover</li>
+  </ol>
+</div>
+
+<script>
+/* =========================================================
+   DATA
+   ========================================================= */
+
+const SPEC_LINES_KEPT = [
+  "## 라이브 카페 예약 시스템 v1",
+  "예약 단위는 1시간이며, 같은 시간대 중복 예약은 불가하다.",
+  "예약 가능 인원은 좌석당 1인이며 좌석은 4인 테이블 단위로 묶인다.",
+  "결제는 카드/카카오페이/계좌이체를 지원한다.",
+  "예약 알림은 1시간 전 카카오톡 메시지로 발송한다.",
+];
+
+const SPEC_LINES_DROPPED = [
+  "### 예약 취소 정책",
+  "24시간 전 무료 취소, 12시간 전 50% 환불, 그 이후 환불 불가.",
+  "예약 변경은 1회까지 무료, 그 이후 변경 시 5,000원의 수수료가 부과된다.",
+  "노쇼 발생 시 다음 예약 시도 시 보증금이 요구된다.",
+  "단체 예약(8인 이상)은 별도의 취소 정책이 적용된다 — 48시간 전 무료, 24시간 전 70%.",
+  "결제 후 24시간 내 자동 취소 시 환불 수수료는 면제한다.",
+  "환불은 영업일 기준 3일 이내 원결제 수단으로 처리된다.",
+];
+
+const TURN_8_KEPT = [
+  "Turn 8 · 의사결정",
+  "예약은 1시간 단위 슬롯으로 운영하기로 함.",
+];
+const TURN_8_DROPPED = [
+  "예약 시작 시각은 정시(00분)만 허용 (30분 단위 X)로 결정.",
+  "이유: 동시 입장 혼잡 완화 + 좌석 정리 시간 확보.",
+];
+
+const cards = [
+  {
+    id: 'spec-v1', label: '📄 spec v1', tokens: 1247, summarizedTokens: 340,
+    state: 'summarized',
+    kept: SPEC_LINES_KEPT, dropped: SPEC_LINES_DROPPED,
+  },
+  {
+    id: 'turn-8', label: '💬 turn 8 의사결정', tokens: 420, summarizedTokens: 110,
+    state: 'summarized',
+    kept: TURN_8_KEPT, dropped: TURN_8_DROPPED,
+  },
+  {
+    id: 'turn-22', label: '🐛 turn 22 버그 컨텍스트', tokens: 180, summarizedTokens: null,
+    state: 'active',
+    kept: ["Turn 22 · 버그 리포트", "예약 확정 후 카카오 알림이 발송되지 않는 케이스 발견.", "재현 조건: 카드결제 + 12시간 이내 예약."], dropped: [],
+  },
+  {
+    id: 'turn-14', label: '💬 turn 14 곁다리', tokens: 95, summarizedTokens: 0,
+    state: 'dropped',
+    kept: [], dropped: ["Turn 14 · 곁다리 잡담", "(이 turn은 활성 컨텍스트에서 드롭됨 — 답변에 영향 없음)", "원문: '아 그러고 보니 카페 BGM 추천도 가능해?'"],
+  },
+];
+
+/* Pre-populated chat (turn 1, 8, 14, 22, 28 — turn 30 still empty input) */
+const messages = [
+  {
+    turn: 1, role: 'user',
+    html: `<div>아래 스펙 검토하고 누락 있으면 알려줘:<pre>## 라이브 카페 예약 시스템 v1
+[... 1247 토큰 분량 스펙 전문 ...]</pre></div>`,
+  },
+  {
+    turn: 1, role: 'assistant',
+    html: `<div>스펙 잘 받았어. 좌석/시간/결제 흐름은 명확하고, 취소 정책 부분이 가장 디테일이 풍부해 보여. 어떤 관점에서 먼저 들어갈까?</div>`,
+  },
+  {
+    turn: 8, role: 'user',
+    html: `<div>예약 슬롯 단위 정하자.</div>`,
+  },
+  {
+    turn: 8, role: 'assistant',
+    html: `<div>1시간 단위가 운영 측면에서 깔끔해. 30분 단위는 좌석 정리/대기 시간이 빠듯해서 동시 입장이 몰리면 혼잡이 커짐.</div>`,
+  },
+  {
+    turn: 14, role: 'user', dropped: true,
+    html: `<div>아 그러고 보니 카페 BGM 추천도 가능해?</div>`,
+  },
+  {
+    turn: 14, role: 'assistant', dropped: true,
+    html: `<div>가능은 한데 이번 스펙 범위는 아닌 것 같아 — 다음 이터레이션에서 다루자.</div>`,
+  },
+  {
+    turn: 22, role: 'user',
+    html: `<div>예약 확정 후 카카오 알림이 안 나가는 케이스 봤어. 카드결제 + 12시간 이내 예약일 때.</div>`,
+  },
+  {
+    turn: 22, role: 'assistant',
+    html: `<div>알림 발송 시점이 결제 완료 콜백에 묶여 있는 게 원인일 수 있어. 12시간 미만 예약은 알림 트리거가 결제 완료 시점과 충돌해서 누락 가능성 있음.</div>`,
+  },
+  {
+    turn: 28, role: 'user',
+    html: `<div>버그 픽스 우선순위 정하자.</div>`,
+  },
+  {
+    turn: 28, role: 'assistant',
+    html: `<div>알림 누락이 사용자 체감 가장 크니까 P0. 그 외엔 P2 수준에서 다음 스프린트로.</div>`,
+  },
+];
+
+/* =========================================================
+   STATE
+   ========================================================= */
+let modalCardId = null;
+let attachedCardIds = new Set();
+
+/* =========================================================
+   RENDER
+   ========================================================= */
+const cardList = document.getElementById('card-list');
+const messagesInner = document.getElementById('messages-inner');
+const previewChips = document.getElementById('preview-chips');
+const inputAttached = document.getElementById('input-attached');
+const inputRow = document.getElementById('input-row');
+const inputEl = document.getElementById('input');
+
+function badgeText(state) {
+  return ({
+    active: '🟢 active',
+    summarized: '🟡 summarized',
+    dropped: '🔴 dropped',
+    reattached: '🟢↻ re-attached',
+  })[state];
+}
+
+function renderCards() {
+  cardList.innerHTML = '';
+  cards.forEach(c => {
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.dataset.id = c.id;
+    el.dataset.state = c.state;
+    el.draggable = true;
+    const tokenLine = c.summarizedTokens === null
+      ? `${c.tokens} tok`
+      : c.summarizedTokens === 0
+        ? `${c.tokens} tok → 0`
+        : `${c.tokens} → ${c.summarizedTokens} tok`;
+    el.innerHTML = `
+      <div class="row1">
+        <div class="label">${c.label}</div>
+        <div class="badge">${badgeText(c.state)}</div>
+      </div>
+      <div class="row2">
+        <span class="dot"></span>
+        <span>${tokenLine}</span>
+      </div>
+    `;
+    el.addEventListener('click', () => openModal(c.id));
+    el.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', c.id);
+      e.dataTransfer.effectAllowed = 'copy';
+      el.classList.add('dragging');
+    });
+    el.addEventListener('dragend', () => el.classList.remove('dragging'));
+    cardList.appendChild(el);
+  });
+}
+
+function renderMessages() {
+  messagesInner.innerHTML = '';
+  messages.forEach((m) => {
+    const t = document.createElement('div');
+    t.className = 'turn';
+    t.dataset.role = m.role;
+    if (m.dropped) t.dataset.dropped = 'true';
+    const dropMark = m.dropped
+      ? `<span class="drop-dot" title="이 turn은 모델 활성 컨텍스트에서 드롭됨 — 답변에 영향 없음"></span>`
+      : '';
+    t.innerHTML = `
+      <div class="gutter">${m.turn}${dropMark}</div>
+      <div>
+        <div class="who">${m.role === 'user' ? 'user' : 'assistant'}</div>
+        <div class="body">${m.html}</div>
+      </div>
+    `;
+    messagesInner.appendChild(t);
+  });
+  // turn 30 divider
+  const div = document.createElement('div');
+  div.className = 'turn-divider';
+  div.textContent = 'turn 30 · 자동 compaction 발생됨 — ledger의 spec v1 / turn 8 카드를 확인';
+  messagesInner.appendChild(div);
+}
+
+function renderPreviewChips() {
+  // remove old chips except label
+  previewChips.querySelectorAll('.chip').forEach(c => c.remove());
+  cards.forEach(c => {
+    if (c.state === 'dropped') return; // dropped not used
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.dataset.state = c.state;
+    const tokens = c.state === 'summarized' ? c.summarizedTokens : c.tokens;
+    chip.innerHTML = `<span class="chip-dot"></span>${c.label} (${tokens})`;
+    previewChips.appendChild(chip);
+  });
+}
+
+/* =========================================================
+   MODAL
+   ========================================================= */
+const modalBackdrop = document.getElementById('modal-backdrop');
+const modalTitle = document.getElementById('modal-title');
+const paneOriginal = document.getElementById('pane-original');
+const paneSummary = document.getElementById('pane-summary');
+const metaOriginal = document.getElementById('meta-original');
+const metaSummary = document.getElementById('meta-summary');
+const modalAttachBtn = document.getElementById('modal-attach');
+
+function openModal(cardId) {
+  const c = cards.find(x => x.id === cardId);
+  if (!c) return;
+  modalCardId = cardId;
+  modalTitle.textContent = `${c.label} — 원문 ↔ 요약 비교`;
+  metaOriginal.textContent = `${c.tokens} tok`;
+  metaSummary.textContent = c.summarizedTokens === null ? `${c.tokens} tok (활성)` : `${c.summarizedTokens} tok`;
+  paneOriginal.innerHTML = '';
+  c.kept.forEach(line => {
+    const d = document.createElement('span');
+    d.className = 'doc-line kept';
+    d.textContent = line;
+    paneOriginal.appendChild(d);
+  });
+  c.dropped.forEach(line => {
+    const d = document.createElement('span');
+    d.className = 'doc-line dropped';
+    d.textContent = line;
+    paneOriginal.appendChild(d);
+  });
+  paneSummary.innerHTML = '';
+  if (c.state === 'active') {
+    const d = document.createElement('span');
+    d.className = 'doc-line kept';
+    d.textContent = '(활성 — 원문 그대로 컨텍스트에 보존됨)';
+    paneSummary.appendChild(d);
+  } else if (c.state === 'dropped') {
+    const d = document.createElement('span');
+    d.className = 'doc-line dropped';
+    d.textContent = '(드롭됨 — 활성 컨텍스트에 남아 있는 부분 없음)';
+    paneSummary.appendChild(d);
+  }
+  c.kept.forEach(line => {
+    const d = document.createElement('span');
+    d.className = 'doc-line kept';
+    d.textContent = line;
+    paneSummary.appendChild(d);
+  });
+  modalAttachBtn.style.display = (c.state === 'active') ? 'none' : 'inline-block';
+  modalBackdrop.classList.add('show');
+}
+
+document.getElementById('modal-close').addEventListener('click', () => modalBackdrop.classList.remove('show'));
+modalBackdrop.addEventListener('click', (e) => {
+  if (e.target === modalBackdrop) modalBackdrop.classList.remove('show');
+});
+modalAttachBtn.addEventListener('click', () => {
+  if (modalCardId) {
+    reattach(modalCardId);
+    modalBackdrop.classList.remove('show');
+  }
+});
+
+/* =========================================================
+   REATTACH
+   ========================================================= */
+function reattach(cardId) {
+  const c = cards.find(x => x.id === cardId);
+  if (!c) return;
+  c.state = 'reattached';
+  c.summarizedTokens = c.tokens;
+  attachedCardIds.add(cardId);
+  renderCards();
+  renderPreviewChips();
+  // show input attached chip
+  inputAttached.innerHTML = `<strong>${c.label}</strong> 원문이 다음 turn 컨텍스트로 다시 주입됨 (${c.tokens} tok)`;
+  inputAttached.classList.add('show');
+  showToast(`${c.label} 재첨부됨`);
+  // optionally pre-fill input
+  if (!inputEl.value.trim()) {
+    inputEl.value = `스펙의 '예약 취소 정책' 섹션 다시 짚어줘`;
+    inputEl.focus();
+  }
+}
+
+/* =========================================================
+   DRAG & DROP TO INPUT
+   ========================================================= */
+inputRow.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'copy';
+  inputRow.classList.add('drop-target');
+});
+inputRow.addEventListener('dragleave', () => inputRow.classList.remove('drop-target'));
+inputRow.addEventListener('drop', (e) => {
+  e.preventDefault();
+  inputRow.classList.remove('drop-target');
+  const id = e.dataTransfer.getData('text/plain');
+  if (id) reattach(id);
+});
+
+/* =========================================================
+   PREVIEW CHIPS HOVER
+   ========================================================= */
+const sendBtn = document.getElementById('send');
+sendBtn.addEventListener('mouseenter', () => previewChips.classList.add('show'));
+sendBtn.addEventListener('mouseleave', () => previewChips.classList.remove('show'));
+sendBtn.addEventListener('focus', () => previewChips.classList.add('show'));
+sendBtn.addEventListener('blur', () => previewChips.classList.remove('show'));
+
+/* =========================================================
+   SEND
+   ========================================================= */
+sendBtn.addEventListener('click', () => {
+  const text = inputEl.value.trim();
+  if (!text) return;
+  const userTurn = { turn: 31, role: 'user', html: `<div>${escapeHtml(text)}</div>` };
+  messages.push(userTurn);
+
+  let assistantHtml;
+  let citationLabel;
+  if (attachedCardIds.has('spec-v1')) {
+    assistantHtml = `<div>예약 취소 정책에 따르면 <strong>24시간 전 무료 취소</strong>, <strong>12시간 전 50% 환불</strong>, 그 이후는 환불 불가야. 예약 변경은 1회까지 무료, 이후엔 5,000원 수수료. 노쇼 발생 시 다음 예약 시도 때 보증금이 요구되고, 단체(8인+) 예약은 48시간/24시간 기준의 별도 정책 적용. <span class="citation">cited: spec v1 (re-attached this turn)</span></div>`;
+    citationLabel = 'spec v1 (re-attached)';
+  } else {
+    assistantHtml = `<div>음, '예약 취소 정책'은 첫 turn에 받았던 스펙에 있었던 것 같은데 정확한 수치(시간, %)를 지금은 들고 있지 않아. 자동 압축으로 일부 정보가 빠진 것 같아. 다시 한 번 그 부분을 공유해줄 수 있을까? <span class="citation" style="color:var(--red);background:var(--red-bg);">missing: spec v1 details</span></div>`;
+    citationLabel = 'missing context';
+  }
+  const assistantTurn = { turn: 31, role: 'assistant', html: assistantHtml };
+  messages.push(assistantTurn);
+
+  inputEl.value = '';
+  inputAttached.classList.remove('show');
+  renderMessages();
+  scrollMessagesToBottom();
+  document.getElementById('tag-turn').textContent = 'turn 31 / 31';
+});
+
+function escapeHtml(s) { return s.replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+
+function scrollMessagesToBottom() {
+  const m = document.getElementById('messages');
+  m.scrollTop = m.scrollHeight;
+}
+
+/* =========================================================
+   TOAST
+   ========================================================= */
+const toastEl = document.getElementById('toast');
+let toastTimer = null;
+function showToast(text) {
+  toastEl.textContent = text;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 1600);
+}
+
+/* =========================================================
+   RESET
+   ========================================================= */
+document.getElementById('btn-reset').addEventListener('click', () => location.reload());
+document.getElementById('close-guide').addEventListener('click', () => {
+  document.getElementById('demo-guide').style.display = 'none';
+});
+
+/* =========================================================
+   INIT
+   ========================================================= */
+renderCards();
+renderMessages();
+renderPreviewChips();
+scrollMessagesToBottom();
+</script>
+</body>
+</html>
