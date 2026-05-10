@@ -34,6 +34,19 @@
   }
   body { display: flex; flex-direction: column; overflow: hidden; }
 
+  /* Lucide icon sizing */
+  .icon {
+    width: 14px; height: 14px;
+    flex-shrink: 0;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .icon-sm { width: 11px; height: 11px; }
+  .icon-md { width: 16px; height: 16px; }
+  .icon-lg { width: 20px; height: 20px; }
+  .icon-xs { width: 9px; height: 9px; }
+
   /* Header */
   header {
     flex: 0 0 auto;
@@ -92,12 +105,18 @@
   .card:hover { border-color: var(--ink-3); }
   .card.dragging { opacity: 0.4; }
   .card .row1 {
-    display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; gap: 8px;
   }
-  .card .label { font-weight: 600; font-size: 13px; color: var(--ink); }
+  .card .label {
+    font-weight: 600; font-size: 13px; color: var(--ink);
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .card .label .icon { color: var(--ink-3); }
   .card .badge {
-    font-size: 10px; padding: 2px 6px; border-radius: 10px;
+    font-size: 10px; padding: 3px 7px; border-radius: 10px;
     font-family: ui-monospace, "SF Mono", monospace;
+    display: inline-flex; align-items: center; gap: 4px;
+    border: 1px solid;
   }
   .card .row2 {
     display: flex; align-items: center; gap: 8px; font-size: 11px;
@@ -107,13 +126,13 @@
     width: 7px; height: 7px; border-radius: 50%;
   }
   .card[data-state="active"]      .dot { background: var(--green); }
-  .card[data-state="active"]      .badge { background: var(--green-bg); color: var(--green); }
+  .card[data-state="active"]      .badge { background: var(--green-bg); color: var(--green); border-color: var(--green); }
   .card[data-state="summarized"]  .dot { background: var(--yellow); }
-  .card[data-state="summarized"]  .badge { background: var(--yellow-bg); color: var(--yellow); }
+  .card[data-state="summarized"]  .badge { background: var(--yellow-bg); color: var(--yellow); border-color: var(--yellow); }
   .card[data-state="dropped"]     .dot { background: var(--red); }
-  .card[data-state="dropped"]     .badge { background: var(--red-bg); color: var(--red); }
+  .card[data-state="dropped"]     .badge { background: var(--red-bg); color: var(--red); border-color: var(--red); }
   .card[data-state="reattached"]  .dot { background: var(--green); box-shadow: 0 0 0 2px rgba(74,122,74,0.2); }
-  .card[data-state="reattached"]  .badge { background: var(--green-bg); color: var(--green); }
+  .card[data-state="reattached"]  .badge { background: var(--green-bg); color: var(--green); border-color: var(--green); font-weight: 600; }
 
   /* Chat */
   section.chat {
@@ -125,16 +144,16 @@
   }
   .messages-inner { max-width: 720px; margin: 0 auto; }
   .turn {
-    display: grid; grid-template-columns: 24px 1fr; gap: 12px;
+    display: grid; grid-template-columns: 28px 1fr; gap: 12px;
     padding: 10px 0; position: relative;
   }
   .turn .gutter {
     color: var(--ink-3); font-size: 10px; font-family: ui-monospace, "SF Mono", monospace;
     padding-top: 4px; text-align: right; user-select: none;
+    display: flex; align-items: center; justify-content: flex-end; gap: 3px;
   }
-  .turn .gutter .drop-dot {
-    width: 6px; height: 6px; background: var(--red); border-radius: 50%;
-    display: inline-block; margin-left: 4px; cursor: help;
+  .turn .gutter .drop-icon {
+    color: var(--red); cursor: help; display: inline-flex;
   }
   .turn .body { font-size: 14px; line-height: 1.6; color: var(--ink); }
   .turn .who {
@@ -148,7 +167,8 @@
   }
   .turn .body pre { padding: 10px; margin: 6px 0; white-space: pre-wrap; overflow-x: auto; line-height: 1.5; }
   .turn .body .citation {
-    display: inline-block; font-size: 10px; color: var(--ink-3);
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10px; color: var(--ink-3);
     background: var(--bg-2); padding: 2px 7px; border-radius: 10px;
     margin-top: 6px; font-family: ui-monospace, "SF Mono", monospace;
   }
@@ -160,6 +180,7 @@
   .turn-divider {
     border-top: 1px dashed var(--line); padding-top: 6px; margin-top: 12px;
     color: var(--ink-3); font-size: 11px; font-family: ui-monospace, "SF Mono", monospace;
+    display: flex; align-items: center; gap: 6px;
   }
 
   /* Input */
@@ -195,6 +216,7 @@
     background: var(--ink); color: var(--bg);
     border: 0; padding: 0 18px; font-size: 13px; font-weight: 600;
     border-radius: 0 8px 8px 0; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 6px;
     transition: background 160ms ease;
   }
   .send-btn:hover { background: var(--accent); }
@@ -219,8 +241,7 @@
   }
   .chip[data-state="active"]     { color: var(--green);  background: var(--green-bg);  border-color: var(--green); }
   .chip[data-state="summarized"] { color: var(--yellow); background: var(--yellow-bg); border-color: var(--yellow); }
-  .chip[data-state="reattached"] { color: var(--green);  background: var(--green-bg);  border-color: var(--green); }
-  .chip .chip-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+  .chip[data-state="reattached"] { color: var(--green);  background: var(--green-bg);  border-color: var(--green); font-weight: 600; }
 
   /* Modal */
   .modal-backdrop {
@@ -239,9 +260,10 @@
     padding: 14px 18px; border-bottom: 1px solid var(--line);
     display: flex; align-items: center; justify-content: space-between;
   }
-  .modal-header h2 { font-size: 14px; font-weight: 600; }
+  .modal-header h2 { font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
   .modal-header .close {
     background: none; border: 0; font-size: 18px; color: var(--ink-3); cursor: pointer; line-height: 1;
+    padding: 0; display: inline-flex;
   }
   .modal-body {
     flex: 1 1 auto; overflow: auto;
@@ -272,10 +294,13 @@
     padding: 10px 18px; border-top: 1px solid var(--line);
     font-size: 11px; color: var(--ink-3);
     display: flex; justify-content: space-between; align-items: center;
+    gap: 12px;
   }
+  .modal-footer .legend { display: inline-flex; align-items: center; gap: 12px; }
   .modal-footer button {
     font-size: 12px; padding: 5px 12px; border: 1px solid var(--ink); color: var(--ink);
     background: var(--bg); border-radius: 4px; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 5px;
   }
   .modal-footer button:hover { background: var(--ink); color: var(--bg); }
 
@@ -287,6 +312,7 @@
     opacity: 0; transition: opacity 200ms ease;
     pointer-events: none; z-index: 200;
     font-family: ui-monospace, "SF Mono", monospace;
+    display: inline-flex; align-items: center; gap: 6px;
   }
   .toast.show { opacity: 1; }
 
@@ -294,7 +320,7 @@
   .demo-guide {
     position: fixed; bottom: 16px; right: 16px; z-index: 50;
     background: var(--ink); color: var(--bg);
-    padding: 12px 14px; border-radius: 6px; max-width: 280px;
+    padding: 12px 14px; border-radius: 6px; max-width: 300px;
     font-size: 12px; line-height: 1.5;
     box-shadow: 0 8px 24px rgba(0,0,0,0.2);
   }
@@ -307,7 +333,7 @@
 <body>
 
 <header>
-  <h1>HID-W1 · Context Ledger <span class="muted">/ v0.1 prototype</span></h1>
+  <h1>HID-W1 · Context Ledger <span class="muted">/ v0.2 (Lucide)</span></h1>
   <div class="actions">
     <span class="tag" id="tag-turn">turn 30 / 31</span>
     <button id="btn-reset">처음부터</button>
@@ -339,7 +365,9 @@
         </div>
         <div class="input-row" id="input-row">
           <textarea id="input" rows="2" placeholder="메시지 입력 …"></textarea>
-          <button class="send-btn" id="send" type="button">보내기</button>
+          <button class="send-btn" id="send" type="button">
+            <span>보내기</span>
+          </button>
         </div>
       </div>
     </div>
@@ -350,8 +378,8 @@
 <div class="modal-backdrop" id="modal-backdrop">
   <div class="modal">
     <div class="modal-header">
-      <h2 id="modal-title">spec v1 — 원문 ↔ 요약 비교</h2>
-      <button class="close" id="modal-close">×</button>
+      <h2 id="modal-title"></h2>
+      <button class="close" id="modal-close" aria-label="close">×</button>
     </div>
     <div class="modal-body">
       <div class="modal-pane">
@@ -364,8 +392,11 @@
       </div>
     </div>
     <div class="modal-footer">
-      <span>굵은 줄 = 요약에 보존, <span style="color:var(--red);text-decoration:line-through;">취소선</span> = 누락</span>
-      <button id="modal-attach">이 컨텍스트 재첨부 →</button>
+      <span class="legend">
+        <span><strong>굵게</strong> = 보존</span>
+        <span style="color:var(--red);"><span style="text-decoration:line-through;">취소선</span> = 누락</span>
+      </span>
+      <button id="modal-attach"></button>
     </div>
   </div>
 </div>
@@ -376,16 +407,44 @@
   <button class="close-guide" id="close-guide">×</button>
   <h4>테스트 시나리오</h4>
   <ol>
-    <li>좌측 ledger의 🟡 카드 색 확인</li>
+    <li>좌측 ledger의 노랑 카드 색 확인</li>
     <li>"보내기" 버튼 위에 hover → 칩 미리보기</li>
-    <li>🟡 spec v1 카드 클릭 → diff 모달</li>
-    <li>🟡 카드를 입력창에 드래그 → 재첨부</li>
+    <li>노랑 spec v1 카드 클릭 → diff 모달</li>
+    <li>노랑 카드를 입력창에 드래그 → 재첨부</li>
     <li>보내기 → 답변에 인용됨</li>
-    <li>turn 14 좌측 🔴 점 hover</li>
+    <li>turn 14 좌측 빨간 점 hover</li>
   </ol>
 </div>
 
 <script>
+/* =========================================================
+   LUCIDE ICON HELPER
+   Inline SVG (no external dependency)
+   ========================================================= */
+const ICONS = {
+  // States
+  'circle-fill':   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon"><circle cx="12" cy="12" r="10"/></svg>',
+  'pie-chart':     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M21 12c.552 0 1.005-.449.95-.998a10 10 0 0 0-8.953-8.951c-.55-.055-.997.398-.997.95v8a1 1 0 0 0 1 1z"/><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/></svg>',
+  'circle-off':    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="m2 2 20 20"/><path d="M8.35 2.69A10 10 0 0 1 21.3 15.65"/><path d="M19.08 19.08A10 10 0 1 1 4.92 4.92"/></svg>',
+  'rotate-cw':     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>',
+  // Card prefix icons
+  'file-text':     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>',
+  'message-square':'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+  'bug':           '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="m8 2 1.88 1.88"/><path d="M14.12 3.88 16 2"/><path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/></svg>',
+  // Misc
+  'alert-triangle':'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',
+  'paperclip':     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M21.44 11.05 12.25 20.24a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 17.98 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>',
+  'send':          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>',
+  'x':             '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>',
+  'quote':         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"/><path d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"/></svg>',
+};
+
+function iconHTML(name, extraClass = '') {
+  const svg = ICONS[name] || '';
+  if (!svg) return '';
+  return extraClass ? svg.replace('class="icon"', `class="icon ${extraClass}"`) : svg;
+}
+
 /* =========================================================
    DATA
    ========================================================= */
@@ -419,70 +478,53 @@ const TURN_8_DROPPED = [
 
 const cards = [
   {
-    id: 'spec-v1', label: '📄 spec v1', tokens: 1247, summarizedTokens: 340,
+    id: 'spec-v1', icon: 'file-text', label: 'spec v1',
+    tokens: 1247, summarizedTokens: 340,
     state: 'summarized',
     kept: SPEC_LINES_KEPT, dropped: SPEC_LINES_DROPPED,
   },
   {
-    id: 'turn-8', label: '💬 turn 8 의사결정', tokens: 420, summarizedTokens: 110,
+    id: 'turn-8', icon: 'message-square', label: 'turn 8 의사결정',
+    tokens: 420, summarizedTokens: 110,
     state: 'summarized',
     kept: TURN_8_KEPT, dropped: TURN_8_DROPPED,
   },
   {
-    id: 'turn-22', label: '🐛 turn 22 버그 컨텍스트', tokens: 180, summarizedTokens: null,
+    id: 'turn-22', icon: 'bug', label: 'turn 22 버그 컨텍스트',
+    tokens: 180, summarizedTokens: null,
     state: 'active',
     kept: ["Turn 22 · 버그 리포트", "예약 확정 후 카카오 알림이 발송되지 않는 케이스 발견.", "재현 조건: 카드결제 + 12시간 이내 예약."], dropped: [],
   },
   {
-    id: 'turn-14', label: '💬 turn 14 곁다리', tokens: 95, summarizedTokens: 0,
+    id: 'turn-14', icon: 'message-square', label: 'turn 14 곁다리',
+    tokens: 95, summarizedTokens: 0,
     state: 'dropped',
     kept: [], dropped: ["Turn 14 · 곁다리 잡담", "(이 turn은 활성 컨텍스트에서 드롭됨 — 답변에 영향 없음)", "원문: '아 그러고 보니 카페 BGM 추천도 가능해?'"],
   },
 ];
 
-/* Pre-populated chat (turn 1, 8, 14, 22, 28 — turn 30 still empty input) */
 const messages = [
-  {
-    turn: 1, role: 'user',
+  { turn: 1, role: 'user',
     html: `<div>아래 스펙 검토하고 누락 있으면 알려줘:<pre>## 라이브 카페 예약 시스템 v1
-[... 1247 토큰 분량 스펙 전문 ...]</pre></div>`,
-  },
-  {
-    turn: 1, role: 'assistant',
-    html: `<div>스펙 잘 받았어. 좌석/시간/결제 흐름은 명확하고, 취소 정책 부분이 가장 디테일이 풍부해 보여. 어떤 관점에서 먼저 들어갈까?</div>`,
-  },
-  {
-    turn: 8, role: 'user',
-    html: `<div>예약 슬롯 단위 정하자.</div>`,
-  },
-  {
-    turn: 8, role: 'assistant',
-    html: `<div>1시간 단위가 운영 측면에서 깔끔해. 30분 단위는 좌석 정리/대기 시간이 빠듯해서 동시 입장이 몰리면 혼잡이 커짐.</div>`,
-  },
-  {
-    turn: 14, role: 'user', dropped: true,
-    html: `<div>아 그러고 보니 카페 BGM 추천도 가능해?</div>`,
-  },
-  {
-    turn: 14, role: 'assistant', dropped: true,
-    html: `<div>가능은 한데 이번 스펙 범위는 아닌 것 같아 — 다음 이터레이션에서 다루자.</div>`,
-  },
-  {
-    turn: 22, role: 'user',
-    html: `<div>예약 확정 후 카카오 알림이 안 나가는 케이스 봤어. 카드결제 + 12시간 이내 예약일 때.</div>`,
-  },
-  {
-    turn: 22, role: 'assistant',
-    html: `<div>알림 발송 시점이 결제 완료 콜백에 묶여 있는 게 원인일 수 있어. 12시간 미만 예약은 알림 트리거가 결제 완료 시점과 충돌해서 누락 가능성 있음.</div>`,
-  },
-  {
-    turn: 28, role: 'user',
-    html: `<div>버그 픽스 우선순위 정하자.</div>`,
-  },
-  {
-    turn: 28, role: 'assistant',
-    html: `<div>알림 누락이 사용자 체감 가장 크니까 P0. 그 외엔 P2 수준에서 다음 스프린트로.</div>`,
-  },
+[... 1247 토큰 분량 스펙 전문 ...]</pre></div>` },
+  { turn: 1, role: 'assistant',
+    html: `<div>스펙 잘 받았어. 좌석/시간/결제 흐름은 명확하고, 취소 정책 부분이 가장 디테일이 풍부해 보여. 어떤 관점에서 먼저 들어갈까?</div>` },
+  { turn: 8, role: 'user',
+    html: `<div>예약 슬롯 단위 정하자.</div>` },
+  { turn: 8, role: 'assistant',
+    html: `<div>1시간 단위가 운영 측면에서 깔끔해. 30분 단위는 좌석 정리/대기 시간이 빠듯해서 동시 입장이 몰리면 혼잡이 커짐.</div>` },
+  { turn: 14, role: 'user', dropped: true,
+    html: `<div>아 그러고 보니 카페 BGM 추천도 가능해?</div>` },
+  { turn: 14, role: 'assistant', dropped: true,
+    html: `<div>가능은 한데 이번 스펙 범위는 아닌 것 같아 — 다음 이터레이션에서 다루자.</div>` },
+  { turn: 22, role: 'user',
+    html: `<div>예약 확정 후 카카오 알림이 안 나가는 케이스 봤어. 카드결제 + 12시간 이내 예약일 때.</div>` },
+  { turn: 22, role: 'assistant',
+    html: `<div>알림 발송 시점이 결제 완료 콜백에 묶여 있는 게 원인일 수 있어. 12시간 미만 예약은 알림 트리거가 결제 완료 시점과 충돌해서 누락 가능성 있음.</div>` },
+  { turn: 28, role: 'user',
+    html: `<div>버그 픽스 우선순위 정하자.</div>` },
+  { turn: 28, role: 'assistant',
+    html: `<div>알림 누락이 사용자 체감 가장 크니까 P0. 그 외엔 P2 수준에서 다음 스프린트로.</div>` },
 ];
 
 /* =========================================================
@@ -492,7 +534,7 @@ let modalCardId = null;
 let attachedCardIds = new Set();
 
 /* =========================================================
-   RENDER
+   RENDER HELPERS
    ========================================================= */
 const cardList = document.getElementById('card-list');
 const messagesInner = document.getElementById('messages-inner');
@@ -501,13 +543,21 @@ const inputAttached = document.getElementById('input-attached');
 const inputRow = document.getElementById('input-row');
 const inputEl = document.getElementById('input');
 
-function badgeText(state) {
-  return ({
-    active: '🟢 active',
-    summarized: '🟡 summarized',
-    dropped: '🔴 dropped',
-    reattached: '🟢↻ re-attached',
-  })[state];
+const STATE_ICON = {
+  active: 'circle-fill',
+  summarized: 'pie-chart',
+  dropped: 'circle-off',
+  reattached: 'rotate-cw',
+};
+const STATE_LABEL = {
+  active: 'active',
+  summarized: 'summarized',
+  dropped: 'dropped',
+  reattached: 're-attached',
+};
+
+function badgeHTML(state) {
+  return `${iconHTML(STATE_ICON[state], 'icon-sm')}<span>${STATE_LABEL[state]}</span>`;
 }
 
 function renderCards() {
@@ -525,8 +575,8 @@ function renderCards() {
         : `${c.tokens} → ${c.summarizedTokens} tok`;
     el.innerHTML = `
       <div class="row1">
-        <div class="label">${c.label}</div>
-        <div class="badge">${badgeText(c.state)}</div>
+        <div class="label">${iconHTML(c.icon)}<span>${c.label}</span></div>
+        <div class="badge">${badgeHTML(c.state)}</div>
       </div>
       <div class="row2">
         <span class="dot"></span>
@@ -552,7 +602,7 @@ function renderMessages() {
     t.dataset.role = m.role;
     if (m.dropped) t.dataset.dropped = 'true';
     const dropMark = m.dropped
-      ? `<span class="drop-dot" title="이 turn은 모델 활성 컨텍스트에서 드롭됨 — 답변에 영향 없음"></span>`
+      ? `<span class="drop-icon" title="이 turn은 모델 활성 컨텍스트에서 드롭됨 — 답변에 영향 없음">${iconHTML('circle-off','icon-xs')}</span>`
       : '';
     t.innerHTML = `
       <div class="gutter">${m.turn}${dropMark}</div>
@@ -566,7 +616,7 @@ function renderMessages() {
   // turn 30 divider
   const div = document.createElement('div');
   div.className = 'turn-divider';
-  div.textContent = 'turn 30 · 자동 compaction 발생됨 — ledger의 spec v1 / turn 8 카드를 확인';
+  div.innerHTML = `${iconHTML('alert-triangle','icon-xs')} <span>turn 30 · 자동 compaction 발생됨 — ledger의 spec v1 / turn 8 카드를 확인</span>`;
   messagesInner.appendChild(div);
 }
 
@@ -579,7 +629,7 @@ function renderPreviewChips() {
     chip.className = 'chip';
     chip.dataset.state = c.state;
     const tokens = c.state === 'summarized' ? c.summarizedTokens : c.tokens;
-    chip.innerHTML = `<span class="chip-dot"></span>${c.label} (${tokens})`;
+    chip.innerHTML = `${iconHTML(STATE_ICON[c.state],'icon-sm')}<span>${c.label} (${tokens})</span>`;
     previewChips.appendChild(chip);
   });
 }
@@ -594,12 +644,13 @@ const paneSummary = document.getElementById('pane-summary');
 const metaOriginal = document.getElementById('meta-original');
 const metaSummary = document.getElementById('meta-summary');
 const modalAttachBtn = document.getElementById('modal-attach');
+const modalCloseBtn = document.getElementById('modal-close');
 
 function openModal(cardId) {
   const c = cards.find(x => x.id === cardId);
   if (!c) return;
   modalCardId = cardId;
-  modalTitle.textContent = `${c.label} — 원문 ↔ 요약 비교`;
+  modalTitle.innerHTML = `${iconHTML(c.icon)}<span>${c.label} — 원문 ↔ 요약 비교</span>`;
   metaOriginal.textContent = `${c.tokens} tok`;
   metaSummary.textContent = c.summarizedTokens === null ? `${c.tokens} tok (활성)` : `${c.summarizedTokens} tok`;
   paneOriginal.innerHTML = '';
@@ -633,11 +684,17 @@ function openModal(cardId) {
     d.textContent = line;
     paneSummary.appendChild(d);
   });
-  modalAttachBtn.style.display = (c.state === 'active') ? 'none' : 'inline-block';
+  if (c.state === 'active') {
+    modalAttachBtn.style.display = 'none';
+  } else {
+    modalAttachBtn.style.display = 'inline-flex';
+    modalAttachBtn.innerHTML = `${iconHTML('paperclip','icon-sm')}<span>이 컨텍스트 재첨부</span>`;
+  }
+  modalCloseBtn.innerHTML = iconHTML('x','icon-sm');
   modalBackdrop.classList.add('show');
 }
 
-document.getElementById('modal-close').addEventListener('click', () => modalBackdrop.classList.remove('show'));
+modalCloseBtn.addEventListener('click', () => modalBackdrop.classList.remove('show'));
 modalBackdrop.addEventListener('click', (e) => {
   if (e.target === modalBackdrop) modalBackdrop.classList.remove('show');
 });
@@ -659,11 +716,9 @@ function reattach(cardId) {
   attachedCardIds.add(cardId);
   renderCards();
   renderPreviewChips();
-  // show input attached chip
-  inputAttached.innerHTML = `<strong>${c.label}</strong> 원문이 다음 turn 컨텍스트로 다시 주입됨 (${c.tokens} tok)`;
+  inputAttached.innerHTML = `${iconHTML('paperclip','icon-sm')}<strong>${c.label}</strong> 원문이 다음 turn 컨텍스트로 다시 주입됨 (${c.tokens} tok)`;
   inputAttached.classList.add('show');
-  showToast(`${c.label} 재첨부됨`);
-  // optionally pre-fill input
+  showToast(`${c.label} 재첨부됨`, 'rotate-cw');
   if (!inputEl.value.trim()) {
     inputEl.value = `스펙의 '예약 취소 정책' 섹션 다시 짚어줘`;
     inputEl.focus();
@@ -695,6 +750,9 @@ sendBtn.addEventListener('mouseleave', () => previewChips.classList.remove('show
 sendBtn.addEventListener('focus', () => previewChips.classList.add('show'));
 sendBtn.addEventListener('blur', () => previewChips.classList.remove('show'));
 
+/* Inject icon into send button */
+sendBtn.insertAdjacentHTML('afterbegin', iconHTML('send','icon-sm'));
+
 /* =========================================================
    SEND
    ========================================================= */
@@ -705,13 +763,10 @@ sendBtn.addEventListener('click', () => {
   messages.push(userTurn);
 
   let assistantHtml;
-  let citationLabel;
   if (attachedCardIds.has('spec-v1')) {
-    assistantHtml = `<div>예약 취소 정책에 따르면 <strong>24시간 전 무료 취소</strong>, <strong>12시간 전 50% 환불</strong>, 그 이후는 환불 불가야. 예약 변경은 1회까지 무료, 이후엔 5,000원 수수료. 노쇼 발생 시 다음 예약 시도 때 보증금이 요구되고, 단체(8인+) 예약은 48시간/24시간 기준의 별도 정책 적용. <span class="citation">cited: spec v1 (re-attached this turn)</span></div>`;
-    citationLabel = 'spec v1 (re-attached)';
+    assistantHtml = `<div>예약 취소 정책에 따르면 <strong>24시간 전 무료 취소</strong>, <strong>12시간 전 50% 환불</strong>, 그 이후는 환불 불가야. 예약 변경은 1회까지 무료, 이후엔 5,000원 수수료. 노쇼 발생 시 다음 예약 시도 때 보증금이 요구되고, 단체(8인+) 예약은 48시간/24시간 기준의 별도 정책 적용. <span class="citation">${iconHTML('paperclip','icon-xs')}cited: spec v1 (re-attached this turn)</span></div>`;
   } else {
-    assistantHtml = `<div>음, '예약 취소 정책'은 첫 turn에 받았던 스펙에 있었던 것 같은데 정확한 수치(시간, %)를 지금은 들고 있지 않아. 자동 압축으로 일부 정보가 빠진 것 같아. 다시 한 번 그 부분을 공유해줄 수 있을까? <span class="citation" style="color:var(--red);background:var(--red-bg);">missing: spec v1 details</span></div>`;
-    citationLabel = 'missing context';
+    assistantHtml = `<div>음, '예약 취소 정책'은 첫 turn에 받았던 스펙에 있었던 것 같은데 정확한 수치(시간, %)를 지금은 들고 있지 않아. 자동 압축으로 일부 정보가 빠진 것 같아. 다시 한 번 그 부분을 공유해줄 수 있을까? <span class="citation" style="color:var(--red);background:var(--red-bg);">${iconHTML('alert-triangle','icon-xs')}missing: spec v1 details</span></div>`;
   }
   const assistantTurn = { turn: 31, role: 'assistant', html: assistantHtml };
   messages.push(assistantTurn);
@@ -735,8 +790,8 @@ function scrollMessagesToBottom() {
    ========================================================= */
 const toastEl = document.getElementById('toast');
 let toastTimer = null;
-function showToast(text) {
-  toastEl.textContent = text;
+function showToast(text, iconName = null) {
+  toastEl.innerHTML = (iconName ? iconHTML(iconName,'icon-sm') : '') + `<span>${text}</span>`;
   toastEl.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => toastEl.classList.remove('show'), 1600);
