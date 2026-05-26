@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="HID W2 Goal Strip prototype for testing how visible goal state can reduce drift in long AI chats." />
+<title>HID W2 · Goal Strip Demo</title>
+<style>
+  :root {
+    --bg: #fffaf6;
+    --surface: rgba(255, 249, 245, 0.94);
+    --surface-solid: #fff9f5;
+    --surface-soft: #f6eee9;
+    --ink: #181517;
+    --ink-2: #403938;
+    --muted: #766b67;
+    --muted-2: #9d918c;
+    --line: #eadbd2;
+    --line-strong: #d7c7bd;
+    --violet: #6655e8;
+    --violet-soft: #ece9ff;
+    --blue: #4d7cff;
+    --pink: #ff4dad;
+    --coral: #ff563f;
+    --green: #238653;
+    --green-soft: #e6f6ed;
+    --amber: #af6500;
+    --amber-soft: #fff2d7;
+    --red: #c44747;
+    --red-soft: #ffe7e7;
+    --shadow: 0 34px 100px rgba(58, 35, 41, 0.18);
+    --shadow-soft: 0 18px 46px rgba(58, 35, 41, 0.11);
+    --r-xl: 32px;
+    --r-lg: 22px;
+    --r-md: 14px;
+    --r-sm: 10px;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    min-height: 100%;
+    margin: 0;
+    color: var(--ink);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Segoe UI", sans-serif;
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    min-height: 100svh;
+  }
+
+  button,
+  textarea,
+  input {
+    font: inherit;
+  }
+
+  button {
+    color: inherit;
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    flex: 0 0 auto;
+  }
+
+  .stage {
+    position: relative;
+    min-height: 100svh;
+    padding: 24px;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 48% 8%, rgba(255,255,250,0.98) 0 7%, rgba(255,255,255,0.78) 8%, rgba(255,255,255,0) 25%),
+      radial-gradient(circle at 46% 45%, rgba(88,111,255,0.62) 0 8%, rgba(88,111,255,0.22) 23%, rgba(255,255,255,0) 43%),
+      linear-gradient(180deg, #fffdfa 0%, #edf4ff 18%, #6788ff 36%, #f26fc9 58%, #ff2f6b 78%, #ff6344 100%);
+  }
+
+  .stage::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(circle, rgba(255,255,255,0.88) 0 1px, transparent 2px),
+      radial-gradient(circle, rgba(255,255,255,0.48) 0 1px, transparent 2px);
+    background-size: 146px 146px, 92px 92px;
+    background-position: 18px 24px, 62px 80px;
+    opacity: 0.34;
+    animation: star-drift 9s ease-in-out infinite alternate;
+  }
+
+  @keyframes star-drift {
+    from { transform: translateY(0); opacity: 0.24; }
+    to { transform: translateY(-8px); opacity: 0.54; }
+  }
+
+  .demo {
+    position: relative;
+    z-index: 1;
+    width: min(1400px, calc(100vw - 48px));
+    min-height: calc(100svh - 48px);
+    margin: 0 auto;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .hero {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    color: var(--ink);
+  }
+
+  .brand {
+    display: grid;
+    gap: 8px;
+  }
+
+  .kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    color: rgba(24, 21, 23, 0.68);
+    font-size: 12px;
+    font-weight: 760;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .mark {
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    background:
+      radial-gradient(circle at 28% 28%, #ffcf63 0 14%, transparent 15%),
+      linear-gradient(135deg, #ff553b 0%, #ff2a83 44%, #5f63ff 100%);
+    box-shadow: 0 8px 24px rgba(255, 64, 111, 0.28);
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(32px, 4vw, 56px);
+    line-height: 0.98;
+    letter-spacing: 0;
+    font-weight: 820;
+  }
+
+  .hero-copy {
+    margin: 0;
+    max-width: 620px;
+    color: rgba(24, 21, 23, 0.72);
+    font-size: 15px;
+    line-height: 1.55;
+  }
+
+  .hero-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .button {
+    border: 1px solid transparent;
+    border-radius: 999px;
+    min-height: 42px;
+    padding: 0 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    background: rgba(255,255,255,0.74);
+    color: var(--ink-2);
+    font-weight: 680;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.72) inset;
+    transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .button:hover {
+    transform: translateY(-1px);
+    background: rgba(255,255,255,0.9);
+    border-color: rgba(255,255,255,0.72);
+  }
+
+  .button.primary {
+    background: var(--ink);
+    color: #fffaf6;
+    box-shadow: 0 14px 34px rgba(24,21,23,0.24);
+  }
+
+  .button.primary:hover {
+    background: #282326;
+  }
+
+  .button.compact {
+    min-height: 34px;
+    padding: 0 12px;
+    font-size: 12px;
+  }
+
+  .shell {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .tour,
+  .workspace {
+    min-height: 0;
+    border: 1px solid rgba(82, 59, 56, 0.13);
+    background: var(--surface);
+    backdrop-filter: blur(16px);
+    box-shadow: var(--shadow);
+  }
+
+  .tour {
+    border-radius: var(--r-xl);
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    overflow: hidden;
+  }
+
+  .tour-head {
+    padding: 22px 20px 16px;
+    border-bottom: 1px solid rgba(82, 59, 56, 0.08);
+  }
+
+  .tour-head h2 {
+    margin: 0 0 8px;
+    font-size: 20px;
+    line-height: 1.08;
+  }
+
+  .tour-head p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .progress {
+    position: relative;
+    height: 8px;
+    border-radius: 999px;
+    margin-top: 16px;
+    overflow: hidden;
+    background: rgba(24,21,23,0.08);
+  }
+
+  .progress span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: var(--progress, 16.666%);
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--violet), var(--pink), var(--coral));
+    transition: width 260ms ease;
+  }
+
+  .steps {
+    min-height: 0;
+    overflow: auto;
+    padding: 12px;
+    display: grid;
+    gap: 8px;
+    align-content: start;
+  }
+
+  .step {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 32px 1fr;
+    gap: 10px;
+    border: 1px solid transparent;
+    border-radius: 18px;
+    padding: 11px;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+  }
+
+  .step:hover {
+    transform: translateY(-1px);
+    background: rgba(255,255,255,0.46);
+  }
+
+  .step.active {
+    background: rgba(255,255,255,0.78);
+    border-color: var(--line);
+  }
+
+  .step.done .step-num {
+    background: var(--green-soft);
+    color: var(--green);
+    border-color: #b9e5ca;
+  }
+
+  .step-num {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.72);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 780;
+  }
+
+  .step-title {
+    display: block;
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 780;
+    line-height: 1.25;
+  }
+
+  .step-action {
+    display: block;
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.34;
+  }
+
+  .tour-foot {
+    display: grid;
+    gap: 8px;
+    padding: 14px;
+    border-top: 1px solid rgba(82, 59, 56, 0.08);
+  }
+
+  .shortcut {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .keys {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .key {
+    min-width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    background: rgba(255,255,255,0.66);
+    color: var(--ink-2);
+    font-size: 11px;
+    font-weight: 760;
+  }
+
+  .workspace {
+    position: relative;
+    border-radius: var(--r-xl);
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .app-top {
+    display: grid;
+    gap: 12px;
+    padding: 18px;
+    border-bottom: 1px solid rgba(82, 59, 56, 0.1);
+    background: rgba(255, 251, 248, 0.74);
+  }
+
+  .screen-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+  }
+
+  .screen-title {
+    display: grid;
+    gap: 4px;
+  }
+
+  .screen-title strong {
+    font-size: 14px;
+    line-height: 1.2;
+  }
+
+  .screen-title span {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .status-stack {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .badge,
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    min-height: 26px;
+    border-radius: 999px;
+    padding: 0 9px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.68);
+    color: var(--ink-2);
+    font-size: 12px;
+    font-weight: 720;
+    white-space: nowrap;
+  }
+
+  .badge.high {
+    color: var(--green);
+    background: var(--green-soft);
+    border-color: #bce6cc;
+  }
+
+  .badge.low {
+    color: var(--red);
+    background: var(--red-soft);
+    border-color: #f0c2c2;
+  }
+
+  .badge.branch {
+    color: var(--violet);
+    background: var(--violet-soft);
+    border-color: #d8d2ff;
+  }
+
+  .goal-strip {
+    display: grid;
+    gap: 10px;
+    border: 1px solid rgba(82, 59, 56, 0.12);
+    border-radius: 22px;
+    padding: 13px 14px;
+    background: rgba(255,255,255,0.8);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.7) inset, var(--shadow-soft);
+  }
+
+  .goal-main {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .goal-label {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 820;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .goal-text {
+    min-width: 0;
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.35;
+    font-weight: 780;
+  }
+
+  .goal-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .icon-btn {
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: rgba(255,255,255,0.7);
+    color: var(--ink-2);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+  }
+
+  .icon-btn:hover {
+    transform: translateY(-1px);
+    background: #fff;
+    border-color: var(--line-strong);
+  }
+
+  .goal-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .chips {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .chip {
+    min-height: 25px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 680;
+  }
+
+  .app-body {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 290px;
+  }
+
+  .chat {
+    min-height: 0;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    border-right: 1px solid rgba(82, 59, 56, 0.1);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0)),
+      rgba(255, 249, 245, 0.5);
+  }
+
+  .messages {
+    min-height: 0;
+    overflow: auto;
+    padding: 20px;
+    display: grid;
+    align-content: end;
+    gap: 10px;
+  }
+
+  .branch-note {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    max-width: 100%;
+    border: 1px solid #d8d2ff;
+    border-radius: 999px;
+    padding: 8px 11px;
+    background: var(--violet-soft);
+    color: var(--violet);
+    font-size: 12px;
+    font-weight: 720;
+  }
+
+  .branch-note.show {
+    display: inline-flex;
+    animation: pop 220ms ease both;
+  }
+
+  .message {
+    max-width: min(720px, 88%);
+    border: 1px solid rgba(82, 59, 56, 0.1);
+    border-radius: 18px;
+    padding: 12px 14px;
+    background: rgba(255,255,255,0.76);
+    box-shadow: 0 8px 26px rgba(58, 35, 41, 0.06);
+    animation: rise 220ms ease both;
+  }
+
+  .message.user {
+    justify-self: end;
+    background: #191719;
+    color: #fffaf6;
+    border-color: rgba(25,23,25,0.2);
+  }
+
+  .message.system {
+    justify-self: center;
+    max-width: min(660px, 92%);
+    background: rgba(255,255,255,0.6);
+    border-style: dashed;
+  }
+
+  .message-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 7px;
+  }
+
+  .role {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 820;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .message.user .role {
+    color: rgba(255,250,246,0.72);
+  }
+
+  .message p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .composer {
+    padding: 14px 18px 18px;
+    border-top: 1px solid rgba(82, 59, 56, 0.1);
+    background: rgba(255, 251, 248, 0.78);
+  }
+
+  .composer-box {
+    display: grid;
+    gap: 10px;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    background: rgba(255,255,255,0.84);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.74) inset;
+    padding: 12px;
+  }
+
+  .composer textarea {
+    width: 100%;
+    min-height: 56px;
+    resize: none;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .composer-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .sample-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+
+  .inspector {
+    min-height: 0;
+    overflow: auto;
+    padding: 18px;
+    display: grid;
+    align-content: start;
+    gap: 12px;
+    background: rgba(255, 247, 241, 0.62);
+  }
+
+  .inspector-section {
+    border-bottom: 1px solid rgba(82, 59, 56, 0.1);
+    padding-bottom: 13px;
+  }
+
+  .inspector-section:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .inspector h2 {
+    margin: 0 0 6px;
+    font-size: 16px;
+    line-height: 1.2;
+  }
+
+  .inspector p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .metric {
+    display: grid;
+    gap: 5px;
+  }
+
+  .metric-label {
+    color: var(--muted-2);
+    font-size: 11px;
+    font-weight: 820;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .metric-value {
+    font-size: 32px;
+    line-height: 1;
+    font-weight: 820;
+  }
+
+  .compare {
+    display: grid;
+    gap: 9px;
+  }
+
+  .compare-item {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 11px;
+    background: rgba(255,255,255,0.56);
+  }
+
+  .compare-item strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 12px;
+  }
+
+  .compare-item p {
+    color: var(--ink-2);
+    font-size: 12px;
+  }
+
+  .deploy-note {
+    border: 1px solid rgba(102, 85, 232, 0.2);
+    border-radius: 18px;
+    padding: 12px;
+    background: rgba(236,233,255,0.7);
+    color: var(--violet);
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .overlay,
+  .drawer-shell {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 200ms ease;
+  }
+
+  .overlay.show,
+  .drawer-shell.show {
+    pointer-events: auto;
+    opacity: 1;
+  }
+
+  .overlay {
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgba(25,23,25,0.22);
+    backdrop-filter: blur(7px);
+  }
+
+  .modal {
+    width: min(620px, 100%);
+    border: 1px solid rgba(255,255,255,0.64);
+    border-radius: 28px;
+    background: rgba(255, 250, 246, 0.96);
+    box-shadow: var(--shadow);
+    padding: 22px;
+    animation: modal-in 220ms ease both;
+  }
+
+  .modal h2,
+  .drawer h2 {
+    margin: 10px 0 8px;
+    font-size: 24px;
+    line-height: 1.12;
+  }
+
+  .modal p,
+  .drawer p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .decision-grid {
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .decision {
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    min-height: 112px;
+    padding: 13px;
+    background: rgba(255,255,255,0.72);
+    text-align: left;
+    cursor: pointer;
+    transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+  }
+
+  .decision:hover {
+    transform: translateY(-2px);
+    border-color: var(--line-strong);
+    background: #fff;
+  }
+
+  .decision.primary {
+    border-color: #d8d2ff;
+    background: var(--violet-soft);
+  }
+
+  .decision strong {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--ink);
+    font-size: 14px;
+  }
+
+  .decision span {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.38;
+  }
+
+  .drawer-shell {
+    display: flex;
+    justify-content: flex-end;
+    background: rgba(25,23,25,0.18);
+    backdrop-filter: blur(4px);
+  }
+
+  .drawer {
+    width: min(430px, 94%);
+    height: 100%;
+    border-left: 1px solid rgba(255,255,255,0.58);
+    background: rgba(255, 250, 246, 0.98);
+    box-shadow: -24px 0 70px rgba(58, 35, 41, 0.18);
+    padding: 22px;
+    display: grid;
+    align-content: start;
+    gap: 14px;
+    animation: drawer-in 220ms ease both;
+  }
+
+  .field {
+    display: grid;
+    gap: 8px;
+  }
+
+  .field label {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 780;
+  }
+
+  .field textarea {
+    width: 100%;
+    min-height: 104px;
+    resize: vertical;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    outline: 0;
+    padding: 12px;
+    color: var(--ink);
+    background: rgba(255,255,255,0.82);
+    line-height: 1.5;
+  }
+
+  .drawer-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pop {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes modal-in {
+    from { opacity: 0; transform: translateY(12px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  @keyframes drawer-in {
+    from { transform: translateX(24px); }
+    to { transform: translateX(0); }
+  }
+
+  @media (max-width: 1180px) {
+    .shell {
+      grid-template-columns: 280px minmax(0, 1fr);
+    }
+
+    .app-body {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .inspector {
+      display: none;
+    }
+
+    .chat {
+      border-right: 0;
+    }
+  }
+
+  @media (max-width: 880px) {
+    .stage {
+      padding: 14px;
+      overflow: auto;
+    }
+
+    .demo {
+      width: 100%;
+      min-height: auto;
+    }
+
+    .hero {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .hero-actions {
+      justify-content: flex-start;
+    }
+
+    .shell {
+      grid-template-columns: 1fr;
+    }
+
+    .tour,
+    .workspace {
+      min-height: auto;
+    }
+
+    .workspace {
+      min-height: 720px;
+    }
+
+    .goal-main {
+      grid-template-columns: 1fr auto;
+    }
+
+    .goal-label {
+      grid-column: 1 / -1;
+    }
+
+    .goal-meta,
+    .composer-actions,
+    .screen-row {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .status-stack {
+      justify-content: flex-start;
+    }
+
+    .message {
+      max-width: 96%;
+    }
+
+    .decision-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+<main class="stage">
+  <div class="demo">
+    <header class="hero">
+      <div class="brand">
+        <div class="kicker"><span class="mark"></span> HID W2 Testable Prototype</div>
+        <h1>Goal Strip</h1>
+        <p class="hero-copy">긴 AI 채팅에서 “현재 목표”가 사라지는 순간을 답변 전에 붙잡는 인터페이스 데모입니다.</p>
+      </div>
+      <div class="hero-actions">
+        <button class="button" id="resetTop">
+          <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 3v6h6"></path></svg>
+          Restart
+        </button>
+        <button class="button primary" id="nextTop">
+          Next step
+          <svg viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="shell">
+      <aside class="tour" aria-label="Demo test scenario">
+        <div class="tour-head">
+          <h2>6-step test</h2>
+          <p>왼쪽 순서대로 눌러보면 마찰, drift 감지, 목표 편집까지 한 번에 확인할 수 있습니다.</p>
+          <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+        </div>
+        <div class="steps" id="stepList"></div>
+        <div class="tour-foot">
+          <button class="button primary" id="nextSide">
+            Next step
+            <svg viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg>
+          </button>
+          <div class="shortcut">
+            <span>Keyboard</span>
+            <span class="keys"><span class="key">1</span><span class="key">6</span><span class="key">→</span></span>
+          </div>
+        </div>
+      </aside>
+
+      <section class="workspace" aria-label="Goal Strip AI chat prototype">
+        <div class="app-top">
+          <div class="screen-row">
+            <div class="screen-title">
+              <strong id="screenName">Step 1 · Goal visible</strong>
+              <span id="screenCopy">현재 목표와 답변 기준이 상단에 고정되어 있습니다.</span>
+            </div>
+            <div class="status-stack">
+              <span class="badge branch" id="stepBadge">1 / 6</span>
+              <span class="badge high" id="fitBadge">Goal fit: High</span>
+            </div>
+          </div>
+
+          <div class="goal-strip">
+            <div class="goal-main">
+              <span class="goal-label">Current goal</span>
+              <div class="goal-text" id="goalText">HID W2 과제용 핵심 마찰과 키스크린 정리하기</div>
+              <div class="goal-actions">
+                <span class="badge branch" id="goalState">Locked</span>
+                <button class="icon-btn" id="editGoal" aria-label="Edit current goal">
+                  <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+                </button>
+                <button class="icon-btn" aria-label="Goal history">
+                  <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 3v6h6"></path></svg>
+                </button>
+              </div>
+            </div>
+            <div class="goal-meta">
+              <div class="chips" id="criteriaChips"></div>
+              <span class="badge branch" id="goalHint">Shared state</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="app-body">
+          <div class="chat">
+            <div class="messages" id="messages">
+              <div class="branch-note" id="branchNote">
+                <svg viewBox="0 0 24 24"><path d="M6 3v6a6 6 0 0 0 6 6h6"></path><path d="m15 12 3 3-3 3"></path></svg>
+                Side request moved to a separate branch. Current goal is preserved.
+              </div>
+            </div>
+
+            <div class="composer">
+              <div class="composer-box">
+                <textarea id="composerText" aria-label="Message composer"></textarea>
+                <div class="composer-actions">
+                  <div class="sample-actions">
+                    <button class="button compact" id="alignedAsk">
+                      <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"></path></svg>
+                      Aligned ask
+                    </button>
+                    <button class="button compact" id="offGoalAsk">
+                      <svg viewBox="0 0 24 24"><path d="M12 9v4"></path><path d="M12 17h.01"></path><path d="m10.3 3.9-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3.1l-8-14a2 2 0 0 0-3.4 0Z"></path></svg>
+                      Off-goal ask
+                    </button>
+                  </div>
+                  <button class="button primary compact" id="sendBtn">
+                    Send
+                    <svg viewBox="0 0 24 24"><path d="m5 12 7-7 7 7"></path><path d="M12 19V5"></path></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <aside class="inspector" aria-label="Step explanation">
+            <div class="inspector-section">
+              <span class="badge branch">What to test</span>
+              <h2 id="purposeTitle">Goal Strip 확인</h2>
+              <p id="purposeCopy">상단 Goal Strip이 현재 목표를 계속 붙잡고 있는지 확인합니다.</p>
+            </div>
+            <div class="inspector-section metric">
+              <div class="metric-label">Progress</div>
+              <div class="metric-value" id="stepMetric">1 / 6</div>
+            </div>
+            <div class="inspector-section compare">
+              <div class="compare-item">
+                <strong>Before</strong>
+                <p id="beforeCopy">사용자가 초반 목표를 기억하거나 위쪽 대화를 다시 읽어야 한다.</p>
+              </div>
+              <div class="compare-item">
+                <strong>After</strong>
+                <p id="afterCopy">목표가 상단 상태값으로 보이고, 답변마다 적합성이 표시된다.</p>
+              </div>
+            </div>
+            <div class="deploy-note">
+              GitHub Pages에 올릴 수 있도록 단일 HTML, vanilla JS, 외부 의존성 없는 데모로 구성했습니다.
+            </div>
+          </aside>
+        </div>
+
+        <div class="overlay" id="driftModal" aria-label="Drift check dialog">
+          <div class="modal" role="dialog" aria-modal="true" aria-labelledby="driftTitle">
+            <span class="badge low">Goal fit: Low</span>
+            <h2 id="driftTitle">현재 목표와 다른 요청입니다.</h2>
+            <p>이 요청을 원래 과제 목표에 합칠까요, 아니면 별도 대화로 분기할까요?</p>
+            <div class="decision-grid">
+              <button class="decision" id="updateGoalChoice">
+                <strong>목표 업데이트</strong>
+                <span>현재 goal state를 새 목적에 맞게 수정합니다.</span>
+              </button>
+              <button class="decision primary" id="branchChoice">
+                <strong>별도 대화 분기</strong>
+                <span>곁가지 요청을 분리하고 현재 목표를 보존합니다.</span>
+              </button>
+              <button class="decision" id="continueChoice">
+                <strong>그냥 계속</strong>
+                <span>이번 요청만 예외로 답변합니다.</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="drawer-shell" id="goalDrawer" aria-label="Edit goal drawer">
+          <div class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+            <span class="badge branch">Editable goal object</span>
+            <h2 id="drawerTitle">Edit Goal</h2>
+            <p>목표를 과거 메시지에 다시 쓰는 대신, 현재 대화의 상태값으로 수정합니다.</p>
+            <div class="field">
+              <label for="goalInput">현재 목표</label>
+              <textarea id="goalInput">HID W2 과제용 핵심 마찰과 테스트 가능한 HTML 데모 완성하기</textarea>
+            </div>
+            <div class="field">
+              <label>답변 기준</label>
+              <div class="chips">
+                <span class="chip">세 문장 알맹이</span>
+                <span class="chip">마찰 선택 이유</span>
+                <span class="chip">테스트 가능한 데모</span>
+              </div>
+            </div>
+            <div class="drawer-actions">
+              <button class="button compact" id="cancelDrawer">Cancel</button>
+              <button class="button primary compact" id="saveGoal">Save Goal</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<script>
+  const baseGoal = 'HID W2 과제용 핵심 마찰과 키스크린 정리하기';
+  let savedGoal = 'HID W2 과제용 핵심 마찰과 테스트 가능한 HTML 데모 완성하기';
+
+  const baseCriteria = ['세 문장 알맹이', '마찰 선택 이유', '키스크린 포함'];
+  const demoCriteria = ['세 문장 알맹이', '마찰 선택 이유', '테스트 가능한 데모'];
+
+  const steps = [
+    {
+      title: 'Goal Strip 확인',
+      action: '현재 목표와 기준 chip을 먼저 본다.',
+      expected: '목표가 대화 상단의 상태값으로 보인다.',
+      screen: 'Step 1 · Goal visible',
+      copy: '현재 목표와 답변 기준이 상단에 고정되어 있습니다.',
+      purpose: '상단 Goal Strip이 현재 목표를 계속 붙잡고 있는지 확인합니다.',
+      before: '사용자가 초반 목표를 기억하거나 위쪽 대화를 다시 읽어야 한다.',
+      after: '목표가 상단 상태값으로 보이고, 답변마다 적합성이 표시된다.',
+      fit: 'Goal fit: High',
+      fitClass: 'high',
+      goalState: 'Locked',
+      criteria: baseCriteria,
+      composer: '',
+      messages: [
+        { role: 'assistant', label: 'Assistant', badge: 'Goal fit: High', badgeClass: 'high', text: '현재 목표는 HID W2 과제의 핵심 마찰과 키스크린을 정리하는 것입니다. 이후 답변은 이 목표를 기준으로 표시됩니다.' }
+      ]
+    },
+    {
+      title: '목표 관련 요청',
+      action: 'Aligned ask를 보내 Goal fit을 확인한다.',
+      expected: '답변이 목표와 연결되어 있음을 바로 본다.',
+      screen: 'Step 2 · Aligned ask',
+      copy: '목표와 관련 있는 요청은 답변 상단에 High badge가 붙습니다.',
+      purpose: '답변이 현재 과제 목표와 연결되는지 즉시 확인합니다.',
+      before: '답변을 다 읽은 뒤에야 원래 목표와 맞는지 판단한다.',
+      after: '답변 생성 직후 Goal fit badge로 목표 적합성을 확인한다.',
+      fit: 'Goal fit: High',
+      fitClass: 'high',
+      goalState: 'Locked',
+      criteria: baseCriteria,
+      composer: '세 문장 알맹이를 더 날카롭게 줄여줘.',
+      messages: [
+        { role: 'assistant', label: 'Assistant', badge: 'Goal fit: High', badgeClass: 'high', text: '현재 목표는 HID W2 과제의 핵심 마찰과 키스크린을 정리하는 것입니다. 이후 답변은 이 목표를 기준으로 표시됩니다.' },
+        { role: 'user', label: 'User', text: '세 문장 알맹이를 더 날카롭게 줄여줘.' },
+        { role: 'assistant', label: 'Assistant', badge: 'Goal fit: High', badgeClass: 'high', text: '현상은 “초반 목표가 대화에 묻힘”, 핵심 마찰은 “목표가 turn 텍스트에만 남음”, 해결책은 “Goal Strip으로 상태화”로 줄일 수 있습니다.' }
+      ]
+    },
+    {
+      title: '목표 밖 요청',
+      action: 'Off-goal ask를 보내 Drift Check를 띄운다.',
+      expected: '답변 전에 목표 이탈을 감지한다.',
+      screen: 'Step 3 · Drift detected',
+      copy: '목표와 관련성이 낮은 요청은 답변 생성 전에 멈춥니다.',
+      purpose: '최근 메시지가 새 목표처럼 처리되는 순간을 차단합니다.',
+      before: '모델이 최근 메시지 중심으로 답하고, 사용자는 사후에 drift를 발견한다.',
+      after: '답변 전에 drift modal이 떠서 사용자가 분기 결정을 내린다.',
+      fit: 'Goal fit: Low',
+      fitClass: 'low',
+      goalState: 'Locked',
+      criteria: baseCriteria,
+      composer: '그런데 내일 여행 일정도 짜줘.',
+      modal: true,
+      messages: [
+        { role: 'assistant', label: 'Assistant', badge: 'Goal fit: High', badgeClass: 'high', text: '현상은 “초반 목표가 대화에 묻힘”, 핵심 마찰은 “목표가 turn 텍스트에만 남음”, 해결책은 “Goal Strip으로 상태화”로 줄일 수 있습니다.' },
+        { role: 'user', label: 'User', text: '그런데 내일 여행 일정도 짜줘.' },
+        { role: 'system', label: 'System check', badge: 'Goal fit: Low', badgeClass: 'low', text: '이 요청은 현재 목표와 관련성이 낮습니다. 답변을 생성하기 전에 목표 업데이트, 별도 대화 분기, 그냥 계속 중 하나를 선택해야 합니다.' }
+      ]
+    },
+    {
+      title: '별도 대화 분기',
+      action: 'Branch를 선택해 현재 목표를 보존한다.',
+      expected: '곁가지 요청만 분리되고 목표는 유지된다.',
+      screen: 'Step 4 · Branch side request',
+      copy: '곁가지 요청은 분기되고 현재 goal은 유지됩니다.',
+      purpose: 'side quest가 현재 과제 목표를 덮어쓰지 않게 합니다.',
+      before: '곁가지 질문 이후 대화 목표가 흐려진다.',
+      after: '분기 표시가 남고 현재 대화의 목표는 그대로 유지된다.',
+      fit: 'Branch preserved',
+      fitClass: 'branch',
+      goalState: 'Locked',
+      criteria: baseCriteria,
+      branch: true,
+      composer: '',
+      messages: [
+        { role: 'assistant', label: 'Assistant', badge: 'Goal fit: High', badgeClass: 'high', text: '현상은 “초반 목표가 대화에 묻힘”, 핵심 마찰은 “목표가 turn 텍스트에만 남음”, 해결책은 “Goal Strip으로 상태화”로 줄일 수 있습니다.' },
+        { role: 'user', label: 'User', text: '그런데 내일 여행 일정도 짜줘.' },
+        { role: 'system', label: 'System', badge: 'Branched', badgeClass: 'branch', text: '여행 일정 요청은 별도 대화로 분기했습니다. 현재 대화는 HID W2 과제 목표를 계속 유지합니다.' }
+      ]
+    },
+    {
+      title: 'Goal Edit 열기',
+      action: 'Edit Goal을 눌러 목표 상태를 수정한다.',
+      expected: '목표가 편집 가능한 object로 열린다.',
+      screen: 'Step 5 · Edit goal state',
+      copy: '목표가 drawer에서 편집 가능한 object로 열립니다.',
+      purpose: '목표를 새 메시지로 재선언하지 않고 상태값으로 수정합니다.',
+      before: '“앞에서 말한 목표를 바꿔서...”라는 메시지를 다시 써야 한다.',
+      after: 'Goal drawer에서 현재 목표와 기준 chip을 직접 수정한다.',
+      fit: 'Editing goal',
+      fitClass: 'branch',
+      goalState: 'Editing',
+      criteria: baseCriteria,
+      drawer: true,
+      composer: '',
+      messages: [
+        { role: 'assistant', label: 'Assistant', badge: 'Goal fit: High', badgeClass: 'high', text: '현재 목표는 HID W2 과제의 핵심 마찰과 키스크린을 정리하는 것입니다. 이후 답변은 이 목표를 기준으로 표시됩니다.' },
+        { role: 'system', label: 'Goal state', badge: 'Editing', badgeClass: 'branch', text: 'Goal Strip을 열어 현재 목표와 답변 기준을 수정합니다.' }
+      ]
+    },
+    {
+      title: '수정 목표로 재요청',
+      action: '저장 후 업데이트된 목표로 다시 요청한다.',
+      expected: '새 목표 기준으로 High 답변을 받는다.',
+      screen: 'Step 6 · Updated goal applied',
+      copy: '수정된 목표가 다음 답변 기준으로 적용됩니다.',
+      purpose: '목표를 바꾼 뒤에도 대화 방향이 유지되는지 확인합니다.',
+      before: '목표 수정 이후에도 어떤 기준이 적용되는지 불명확하다.',
+      after: '업데이트된 Goal Strip과 Goal fit: High가 함께 보인다.',
+      fit: 'Goal fit: High',
+      fitClass: 'high',
+      goalState: 'Updated',
+      criteria: demoCriteria,
+      updated: true,
+      composer: '이제 사용자가 따라가며 테스트 가능한 데모 형태로 구현해줘.',
+      messages: [
+        { role: 'system', label: 'Goal state', badge: 'Saved', badgeClass: 'branch', text: '현재 목표를 “테스트 가능한 HTML 데모 완성하기”로 업데이트했습니다.' },
+        { role: 'user', label: 'User', text: '이제 사용자가 따라가며 테스트 가능한 데모 형태로 구현해줘.' },
+        { role: 'assistant', label: 'Assistant', badge: 'Goal fit: High', badgeClass: 'high', text: '업데이트된 목표에 맞춰 6스텝 시나리오, Drift Check, Goal Edit까지 직접 눌러볼 수 있는 HTML 데모로 구성합니다.' }
+      ]
+    }
+  ];
+
+  let currentStep = 1;
+
+  const els = {
+    progressBar: document.getElementById('progressBar'),
+    stepList: document.getElementById('stepList'),
+    screenName: document.getElementById('screenName'),
+    screenCopy: document.getElementById('screenCopy'),
+    stepBadge: document.getElementById('stepBadge'),
+    fitBadge: document.getElementById('fitBadge'),
+    goalText: document.getElementById('goalText'),
+    goalState: document.getElementById('goalState'),
+    goalHint: document.getElementById('goalHint'),
+    criteriaChips: document.getElementById('criteriaChips'),
+    messages: document.getElementById('messages'),
+    branchNote: document.getElementById('branchNote'),
+    composerText: document.getElementById('composerText'),
+    purposeTitle: document.getElementById('purposeTitle'),
+    purposeCopy: document.getElementById('purposeCopy'),
+    stepMetric: document.getElementById('stepMetric'),
+    beforeCopy: document.getElementById('beforeCopy'),
+    afterCopy: document.getElementById('afterCopy'),
+    driftModal: document.getElementById('driftModal'),
+    goalDrawer: document.getElementById('goalDrawer'),
+    goalInput: document.getElementById('goalInput')
+  };
+
+  function escapeHtml(text) {
+    return text.replace(/[&<>"']/g, (char) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    }[char]));
+  }
+
+  function renderSteps() {
+    els.stepList.innerHTML = steps.map((step, index) => {
+      const number = index + 1;
+      const classes = ['step'];
+      if (number === currentStep) classes.push('active');
+      if (number < currentStep) classes.push('done');
+      return `
+        <button class="${classes.join(' ')}" data-step="${number}" aria-current="${number === currentStep ? 'step' : 'false'}">
+          <span class="step-num">${number < currentStep ? '✓' : number}</span>
+          <span>
+            <span class="step-title">${escapeHtml(step.title)}</span>
+            <span class="step-action">${escapeHtml(step.action)}</span>
+          </span>
+        </button>
+      `;
+    }).join('');
+
+    document.querySelectorAll('[data-step]').forEach((button) => {
+      button.addEventListener('click', () => setStep(Number(button.dataset.step)));
+    });
+  }
+
+  function renderCriteria(criteria) {
+    els.criteriaChips.innerHTML = criteria.map((item) => `<span class="chip">${escapeHtml(item)}</span>`).join('');
+  }
+
+  function renderMessages(messages) {
+    const branch = els.branchNote.outerHTML;
+    const rendered = messages.map((message) => {
+      const badge = message.badge
+        ? `<span class="badge ${message.badgeClass || 'branch'}">${escapeHtml(message.badge)}</span>`
+        : '';
+      return `
+        <div class="message ${message.role}">
+          <div class="message-head">
+            <span class="role">${escapeHtml(message.label)}</span>
+            ${badge}
+          </div>
+          <p>${escapeHtml(message.text)}</p>
+        </div>
+      `;
+    }).join('');
+
+    els.messages.innerHTML = `${branch}${rendered}`;
+    els.branchNote = document.getElementById('branchNote');
+    els.branchNote.classList.toggle('show', steps[currentStep - 1].branch === true);
+    els.messages.scrollTop = els.messages.scrollHeight;
+  }
+
+  function setStep(step) {
+    currentStep = Math.max(1, Math.min(steps.length, step));
+    const data = steps[currentStep - 1];
+    const goal = data.updated ? savedGoal : baseGoal;
+
+    document.documentElement.style.setProperty('--progress', `${(currentStep / steps.length) * 100}%`);
+    els.screenName.textContent = data.screen;
+    els.screenCopy.textContent = data.copy;
+    els.stepBadge.textContent = `${currentStep} / ${steps.length}`;
+    els.fitBadge.textContent = data.fit;
+    els.fitBadge.className = `badge ${data.fitClass}`;
+    els.goalText.textContent = goal;
+    els.goalState.textContent = data.goalState;
+    els.goalState.className = 'badge branch';
+    els.goalHint.textContent = data.updated ? 'Updated state' : 'Shared state';
+    els.goalHint.className = 'badge branch';
+    renderCriteria(data.criteria);
+    renderMessages(data.messages);
+
+    els.composerText.value = data.composer;
+    els.purposeTitle.textContent = data.title;
+    els.purposeCopy.textContent = data.purpose;
+    els.stepMetric.textContent = `${currentStep} / ${steps.length}`;
+    els.beforeCopy.textContent = data.before;
+    els.afterCopy.textContent = data.after;
+    els.driftModal.classList.toggle('show', data.modal === true);
+    els.goalDrawer.classList.toggle('show', data.drawer === true);
+
+    renderSteps();
+  }
+
+  function nextStep() {
+    setStep(currentStep === steps.length ? 1 : currentStep + 1);
+  }
+
+  function resetDemo() {
+    savedGoal = 'HID W2 과제용 핵심 마찰과 테스트 가능한 HTML 데모 완성하기';
+    els.goalInput.value = savedGoal;
+    setStep(1);
+  }
+
+  document.getElementById('nextTop').addEventListener('click', nextStep);
+  document.getElementById('nextSide').addEventListener('click', nextStep);
+  document.getElementById('resetTop').addEventListener('click', resetDemo);
+  document.getElementById('alignedAsk').addEventListener('click', () => setStep(2));
+  document.getElementById('offGoalAsk').addEventListener('click', () => setStep(3));
+  document.getElementById('sendBtn').addEventListener('click', () => {
+    const text = els.composerText.value;
+    if (text.includes('여행')) setStep(3);
+    else if (text.includes('데모')) setStep(6);
+    else setStep(2);
+  });
+
+  document.getElementById('branchChoice').addEventListener('click', () => setStep(4));
+  document.getElementById('updateGoalChoice').addEventListener('click', () => setStep(5));
+  document.getElementById('continueChoice').addEventListener('click', () => setStep(4));
+  document.getElementById('editGoal').addEventListener('click', () => setStep(5));
+  document.getElementById('cancelDrawer').addEventListener('click', () => setStep(4));
+  document.getElementById('saveGoal').addEventListener('click', () => {
+    const nextGoal = els.goalInput.value.trim();
+    if (nextGoal) savedGoal = nextGoal;
+    setStep(6);
+  });
+
+  window.addEventListener('keydown', (event) => {
+    if (event.target instanceof HTMLTextAreaElement) return;
+    if (event.key >= '1' && event.key <= '6') setStep(Number(event.key));
+    if (event.key === 'ArrowRight') nextStep();
+    if (event.key === 'ArrowLeft') setStep(currentStep - 1);
+  });
+
+  setStep(1);
+</script>
+</body>
+</html>
