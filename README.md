@@ -6,6 +6,7 @@ Phi Design School · HID 과제 프로토타입 모음.
 
 - **W1 · Context Ledger**: https://st4rgaz3rx.github.io/hid-w1-context-ledger/
 - **W2 · Goal Strip**: https://st4rgaz3rx.github.io/hid-w1-context-ledger/v2/
+- **Final · Loop loop**: https://st4rgaz3rx.github.io/hid-w1-context-ledger/loop-loop/
 
 ---
 
@@ -69,3 +70,35 @@ Phi Design School · HID 과제 프로토타입 모음.
 - `v2/index.html` 단일 HTML 파일
 - vanilla HTML/CSS/JS
 - 외부 의존성 없음
+
+---
+
+## Final · Loop loop
+
+loop engineering(자율 코딩 에이전트 루프)을 위한 UIUX. 에이전트가 같은 실패를 반복하며 로그만 바쁘게 흘러도 통과 수가 그대로면 진척이 아니다(**busy ≠ progress**). iteration을 `advanced / stalled / regressed` 진척 상태로 표상하고, 무진척이 3회 쌓이면 다음 iteration이 토큰을 쓰기 전에 `Spin Check`로 멈춰 세워 방향 수정 / 정지 / 계속을 고르게 한다. 미니멀 에디토리얼 테마.
+
+### 데모 URL
+
+👉 **https://st4rgaz3rx.github.io/hid-w1-context-ledger/loop-loop/**
+
+### 사용 방법
+
+진입 시 단계별 가이드 popup이 시나리오를 설명한다. 닫으면 메인 화면에서 직접 루프를 한 회차씩 돌려본다.
+
+| # | 사용자 행위 | 시스템 반응 |
+|---|---|---|
+| 1 | 가이드 popup 훑고 시작하기 | 5단계 시나리오 확인 후 메인 진입 |
+| 2 | `다음 iteration 실행` 3회 | #1–3 advanced, tests 2→16/20, 무진척 0 |
+| 3 | 계속 눌러 #4–6까지 | #4–5 stalled, #6 regressed, 무진척 3, budget 경고 |
+| 4 | 한 번 더 누름 | `Spin Check` 인터셉트 — ledger dim, 토큰 쓰기 전 정지 |
+| 5 | 방향 수정 → 제약 입력 → 적용 | #7 advanced 14→20, 20/20 달성, 무진척 0 |
+
+### 작동 환경
+
+- `loop-loop/index.html` 단일 HTML 파일
+- vanilla HTML/CSS/JS (폰트는 Google Fonts CDN, 오프라인 시 시스템 폰트로 graceful fallback)
+- 외부 의존성 없음
+
+---
+
+작성: 2026-06-15 (Phi Design School HID 최종 과제)
