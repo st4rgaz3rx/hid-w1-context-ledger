@@ -63,6 +63,20 @@
   .hero h1 em { font-style: italic; color: var(--muted); }
   .hero .sub { max-width: 600px; margin: 16px 0 0; font-size: 16px; color: var(--muted); line-height: 1.65; }
 
+  /* ---------- loop engineering explainer ---------- */
+  .le { margin: 0 0 30px; }
+  .le-kicker { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+  .le-lead { font-family: var(--serif); font-weight: 500; font-size: clamp(20px, 2.4vw, 25px); line-height: 1.34; letter-spacing: -0.015em; color: var(--ink); margin: 11px 0 20px; max-width: 780px; }
+  .le-lead em { font-style: italic; color: var(--muted); }
+  .le-grid { display: grid; grid-template-columns: 1fr 1fr 1.18fr; gap: 12px; }
+  .le-card { border: 1px solid var(--line); border-radius: 12px; padding: 22px; background: var(--surface); opacity: 0; transform: translateY(10px); animation: rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; animation-delay: calc(var(--index) * 90ms); }
+  .le-card.accent { background: var(--surface-2); }
+  .le-card .n { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; color: var(--muted-2); }
+  .le-card h3 { font-size: 14.5px; font-weight: 600; color: var(--ink); letter-spacing: -0.01em; margin: 11px 0 8px; }
+  .le-card p { font-size: 13px; color: var(--muted); line-height: 1.62; margin: 0; }
+  .le-card p b { color: var(--ink-soft); font-weight: 600; }
+  @media (max-width: 820px) { .le-grid { grid-template-columns: 1fr; } }
+
   /* ---------- buttons ---------- */
   .btn { font-family: var(--sans); font-size: 14px; font-weight: 550; border-radius: var(--r-btn); padding: 10px 16px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--ink); display: inline-flex; align-items: center; gap: 8px; transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.18s ease, border-color 0.18s ease; }
   .btn:hover { box-shadow: var(--shadow-soft); }
@@ -228,6 +242,28 @@
       <p class="sub">자율 코딩 에이전트 루프에서 활동(busy)과 진척(progress)을 분리해 보여주고, 무진척이 쌓이면 다음 iteration이 토큰을 쓰기 전에 멈춰 세우는 인터페이스. 아래에서 직접 루프를 돌려보세요.</p>
     </header>
 
+    <section class="le" aria-label="loop engineering 설명">
+      <div class="le-kicker">Loop engineering</div>
+      <p class="le-lead">이제 모델이 작업을 스스로 쪼개고, 루프 안에서 nested subagent를 소환한다. 개발자는 매 턴 프롬프트를 치는 대신 <em>루프가 잘 굴러가게 설계</em>한다 — 그게 loop engineering이다.</p>
+      <div class="le-grid">
+        <article class="le-card" style="--index:0">
+          <div class="n">01</div>
+          <h3>프롬프트에서 루프로</h3>
+          <p>큰 작업을 작은 작업으로 쪼개 subagent에 위임하는 일을 이제 <b>모델이 루프 안에서 스스로</b> 한다. 사람은 턴마다 지시하는 대신 루프의 목표·가드레일·구조를 설계한다.</p>
+        </article>
+        <article class="le-card" style="--index:1">
+          <div class="n">02</div>
+          <h3>nested로 컨텍스트를 분산</h3>
+          <p>main 루프는 길어질수록 컨텍스트가 차 <b>compaction</b>이 일어나 방향을 잃는다. subagent가 또 subagent를 부르는 nested 구조로 일을 내려보내고 요약만 받으면, main의 부하가 줄어 더 긴 작업을 끌고 간다.</p>
+        </article>
+        <article class="le-card accent" style="--index:2">
+          <div class="n">03</div>
+          <h3>그래서 이 데모는</h3>
+          <p>헤비한 코딩을 루프로 돌리는 중, main 루프가 같은 실패를 반복하며 <b>바빠 보이지만 진척이 없을 때</b>가 있다. <b>Loop loop</b>은 그 무진척을 상태로 드러내고, 다음 iteration이 토큰을 쓰기 전에 멈춰 세운다.</p>
+        </article>
+      </div>
+    </section>
+
     <section class="console" aria-label="agent loop console">
       <div class="chrome">
         <span class="dots"><i></i><i></i><i></i></span>
@@ -328,6 +364,7 @@
 
   /* ---------- onboarding scenario ---------- */
   var OB = [
+    { k: "Loop engineering", t: "프롬프트가 아니라 루프를 설계한다", b: "이제 모델이 작업을 스스로 쪼개고, 루프 안에서 nested subagent를 소환한다. 개발자는 매 턴 프롬프트를 치는 대신 루프가 잘 굴러가게 만든다 — 그게 loop engineering. 이 데모는 그렇게 헤비한 코딩을 루프로 돌리는 중 main 루프에서 생기는 문제를 다룬다." },
     { k: "시나리오 01", t: "에이전트에게 루프를 맡겼습니다", b: "당신은 코딩 에이전트에게 “로그인 폼의 이메일 검증 테스트 20개를 전부 통과시켜줘”라고 맡기고, 스스로 도는 자율 루프를 켜둔 개발자입니다." },
     { k: "시나리오 02", t: "루프를 직접 한 회차씩 돌립니다", b: "메인 화면의 [다음 iteration 실행]을 누르면 에이전트가 한 번 시도하고, 그 결과가 Progress Ledger에 한 줄씩 쌓입니다. 직접 눌러보며 관찰하세요." },
     { k: "시나리오 03", t: "진척을 ‘상태’로 읽습니다", b: "각 회차는 advanced(진척) · stalled(정체) · regressed(후퇴)로 표시됩니다. 로그가 바쁘게 흘러도 통과 수가 그대로면 그건 진척이 아닙니다 — busy ≠ progress." },
